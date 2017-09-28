@@ -1,0 +1,36 @@
+{
+    "name": "masterflash-ru/ckfinder",
+    "description": "Интегрирование ckfinder",
+    "type": "Service",
+    "license": "BSD-3-Clause",
+    "keywords": [
+        "masterflash"
+    ],
+    "homepage": "https://masterflash.ru/",
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "require": {
+        "php": "^7.0",
+        "masterflash-ru/admin": "^1.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Ckfinder\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Ckfinder\\": "src/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-master": "1.0.0-dev",
+            "dev-develop": "1.0.0-dev"
+        },
+        "zf": {
+            "component": "Ckfinder",
+            "config-provider": "masterflash-ru\\Ckfinder\\ConfigProvider"
+        }
+    }
+}
