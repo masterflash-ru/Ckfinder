@@ -3,7 +3,7 @@
 обслуживание плагина Ckfinder
  */
 
-namespace Ckfinder;
+namespace Mf\Ckfinder;
 
 
 class Module

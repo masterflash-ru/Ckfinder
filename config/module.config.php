@@ -3,7 +3,7 @@
 работа с плагином Ckfinder визуального редактора 
  */
 
-namespace Ckfinder;
+namespace Mf\Ckfinder;
 
 use Zend\Router\Http\Literal;
 

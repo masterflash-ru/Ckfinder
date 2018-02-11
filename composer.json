@@ -15,12 +15,12 @@
     },
     "autoload": {
         "psr-4": {
-            "Ckfinder\\": "src/"
+            "Mf\\Ckfinder\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "Ckfinder\\": "src/"
+            "Mf\\Ckfinder\\": "src/"
         }
     },
     "extra": {
@@ -29,8 +29,8 @@
             "dev-develop": "1.1-dev"
         },
         "zf": {
-            "component": "Ckfinder",
-            "config-provider": "masterflash-ru\\Ckfinder\\ConfigProvider"
+            "component": "Mf\\Ckfinder",
+            "config-provider": "masterflash-ru\\Mf\\Ckfinder\\ConfigProvider"
         }
     }
 }
