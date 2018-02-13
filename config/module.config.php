@@ -7,11 +7,8 @@ namespace Mf\Ckfinder;
 
 use Zend\Router\Http\Literal;
 
-
-
-
 return [
-	//маршруты
+  //маршруты
     'router' => [
         'routes' => [
             'ckfinder' => [
@@ -23,15 +20,14 @@ return [
                         'action'     => 'index',
                     ],
                 ],
-			],
-       
-	    ],
-    ],
-	//контроллеры
-    'controllers' => [
-	    'invokables' => [
-          Controller\IndexController::class => Controller\IndexController::class,
-   		 ],
-	],
+            ],
 
+        ],
+    ],
+    //контроллеры
+    'controllers' => [
+      'invokables' => [
+          Controller\IndexController::class => Controller\IndexController::class,
+      ],
+    ],
 ];

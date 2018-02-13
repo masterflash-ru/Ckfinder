@@ -1,6 +1,6 @@
 <?php
 /**
-обслуживание плагина Ckfinder
+*обслуживание плагина Ckfinder
  */
 
 namespace Mf\Ckfinder;
