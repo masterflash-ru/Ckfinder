@@ -4,7 +4,7 @@
  * CKFinder
  * ========
  * http://cksource.com/ckfinder
- * Copyright (C) 2007-2015, CKSource - Frederico Knabben. All rights reserved.
+ * Copyright (C) 2007-2016, CKSource - Frederico Knabben. All rights reserved.
  *
  * The software, this file and its contents are subject to the CKFinder
  * License. Please read the license.txt file before using, installing, copying,
@@ -15,22 +15,25 @@
 namespace CKSource\CKFinder\Exception;
 
 use CKSource\CKFinder\Error;
+use Symfony\Component\HttpFoundation\Response;
 
 /**
- * File not found exception class
+ * The "file not found" exception class.
  *
- * @copyright 2015 CKSource - Frederico Knabben
+ * Thrown when the requested file cannot be found.
+ *
+ * @copyright 2016 CKSource - Frederico Knabben
  */
 class FileNotFoundException extends CKFinderException
 {
-    protected $httpStatusCode = 404;
+    protected $httpStatusCode = Response::HTTP_NOT_FOUND;
 
     /**
-     * Constructor
+     * Constructor.
      *
-     * @param string     $message    exception message
-     * @param array      $parameters parameters passed for translation
-     * @param \Exception $previous   previous exception
+     * @param string     $message    the exception message
+     * @param array      $parameters the parameters passed for translation
+     * @param \Exception $previous   the previous exception
      */
     public function __construct($message = 'File not found', $parameters = array(), \Exception $previous = null)
     {

@@ -4,7 +4,7 @@
  * CKFinder
  * ========
  * http://cksource.com/ckfinder
- * Copyright (C) 2007-2015, CKSource - Frederico Knabben. All rights reserved.
+ * Copyright (C) 2007-2016, CKSource - Frederico Knabben. All rights reserved.
  *
  * The software, this file and its contents are subject to the CKFinder
  * License. Please read the license.txt file before using, installing, copying,
@@ -17,19 +17,21 @@ namespace CKSource\CKFinder\Exception;
 use CKSource\CKFinder\Error;
 
 /**
- * Invalid upload exception class
+ * The "invalid upload" exception class.
  *
- * @copyright 2015 CKSource - Frederico Knabben
+ * Thrown when an invalid file upload request was received.
+ *
+ * @copyright 2016 CKSource - Frederico Knabben
  */
 class InvalidUploadException extends CKFinderException
 {
     /**
-     * Constructor
+     * Constructor.
      *
-     * @param string     $message    exception message
-     * @param int        $code       exception code
-     * @param array      $parameters parameters passed for translation
-     * @param \Exception $previous   previous exception
+     * @param string     $message    the exception message
+     * @param int        $code       the exception code
+     * @param array      $parameters the parameters passed for translation
+     * @param \Exception $previous   the previous exception
      */
     public function __construct($message = 'Invalid upload', $code = Error::UPLOADED_INVALID, $parameters = array(), \Exception $previous = null)
     {

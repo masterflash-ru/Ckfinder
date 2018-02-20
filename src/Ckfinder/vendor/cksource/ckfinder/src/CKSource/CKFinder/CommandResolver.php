@@ -4,7 +4,7 @@
  * CKFinder
  * ========
  * http://cksource.com/ckfinder
- * Copyright (C) 2007-2015, CKSource - Frederico Knabben. All rights reserved.
+ * Copyright (C) 2007-2016, CKSource - Frederico Knabben. All rights reserved.
  *
  * The software, this file and its contents are subject to the CKFinder
  * License. Please read the license.txt file before using, installing, copying,
@@ -18,49 +18,51 @@ use CKSource\CKFinder\Command\CommandAbstract;
 use CKSource\CKFinder\Event\BeforeCommandEvent;
 use CKSource\CKFinder\Event\CKFinderEvent;
 use CKSource\CKFinder\Exception\InvalidCommandException;
+use CKSource\CKFinder\Exception\InvalidRequestException;
+use CKSource\CKFinder\Exception\MethodNotAllowedException;
 use Symfony\Component\HttpKernel\Controller\ControllerResolverInterface;
 use Symfony\Component\HttpFoundation\Request;
 
 /**
- * Command resolver class
- * 
- * This class purpose is to resolve which CKFinder command should be executed
- * for current request. This process is based on value passed in $_GET['command']
- * request variable.
+ * The command resolver class.
  *
- * @copyright 2015 CKSource - Frederico Knabben
+ * The purpose of this class is to resolve which CKFinder command should be executed
+ * for the current request. This process is based on a value passed in the
+ * <code>$_GET['command']</code> request variable.
+ *
+ * @copyright 2016 CKSource - Frederico Knabben
  */
 class CommandResolver implements ControllerResolverInterface
 {
     /**
-     * Name of the method to execute in commands classes
+     * The name of the method to execute in commands classes.
      */
     const COMMAND_EXECUTE_METHOD = 'execute';
 
     /**
-     * Commands classes namespace
-     * 
+     * The commands class namespace.
+     *
      * @var string $commandsNamespace
      */
     protected $commandsNamespace;
 
     /**
-     * Plugins classes namespace
+     * The plugins class namespace.
      *
      * @var string $pluginsNamespace
      */
     protected $pluginsNamespace;
 
     /**
-     * App instance
-     * 
+     * The app instance.
+     *
      * @var CKFinder $app
      */
     protected $app;
 
     /**
-     * Constructor
-     * 
+     * Constructor.
+     *
      * @param CKFinder   $app
      */
     public function __construct(CKFinder $app)
@@ -69,7 +71,7 @@ class CommandResolver implements ControllerResolverInterface
     }
 
     /**
-     * Sets namespace used to resolve commands
+     * Sets the namespace used to resolve commands.
      *
      * @param string $namespace
      */
@@ -79,7 +81,7 @@ class CommandResolver implements ControllerResolverInterface
     }
 
     /**
-     * Sets namespace used to resolve plugins commands
+     * Sets the namespace used to resolve plugin commands.
      *
      * @param string $namespace
      */
@@ -89,18 +91,19 @@ class CommandResolver implements ControllerResolverInterface
     }
 
     /**
-     * This method looks for 'command' request attribute. An appropriate class
+     * This method looks for a 'command' request attribute. An appropriate class
      * is then instantiated and used to build a callable.
-     * 
+     *
      * @param Request $request current Request instance
-     * 
-     * @return callable Callable built to execute the command
-     * 
-     * @throws InvalidCommandException If valid command can't be found
+     *
+     * @return callable Callable built to execute the command.
+     *
+     * @throws InvalidCommandException   if a valid command cannot be found.
+     * @throws MethodNotAllowedException if a command was called using an invalid HTTP method.
      */
     public function getController(Request $request)
     {
-        $commandName = ucfirst($request->get('command'));
+        $commandName = ucfirst((string) $request->get('command'));
 
         /* @var Command\CommandAbstract $commandObject */
         $commandObject = null;
@@ -136,6 +139,11 @@ class CommandResolver implements ControllerResolverInterface
             throw new InvalidCommandException(sprintf("CKFinder command class %s doesn't contain required 'execute' method", $commandClassName));
         }
 
+        if ($commandObject->getRequestMethod() !== $request->getMethod()) {
+            throw new MethodNotAllowedException(sprintf('CKFinder command %s expects to be called with %s HTTP request. Actual method: %s',
+                $commandName, $commandObject->getRequestMethod(), $request->getMethod()));
+        }
+
         /* @var $dispatcher \Symfony\Component\EventDispatcher\EventDispatcher */
         $dispatcher = $this->app['dispatcher'];
         $beforeCommandEvent = new BeforeCommandEvent($this->app, $commandName, $commandObject);
@@ -154,8 +162,8 @@ class CommandResolver implements ControllerResolverInterface
 
     /**
      * This method is used to inject objects to controllers.
-     * It depends on arguments taken by executed controller callable.
-     * 
+     * It depends on arguments taken by the executed controller callable.
+     *
      * Supported injected types:
      * Request             - current request object
      * CKFinder            - application object
@@ -165,11 +173,11 @@ class CommandResolver implements ControllerResolverInterface
      * BackendManager      - BackendManager object
      * ResourceTypeFactory - ResourceTypeFactory object
      * WorkingFolder       - WorkingFolder object
-     * 
+     *
      * @param Request  $request request object
      * @param callable $command
-     * 
-     * @return array arguments used during command callable execution
+     *
+     * @return array arguments used during the command callable execution
      */
     public function getArguments(Request $request, $command)
     {
@@ -216,8 +224,8 @@ class CommandResolver implements ControllerResolverInterface
                         break;
                     case 'CacheManager':
                         $arguments[] = $this->app['cache'];
+                        break;
                 }
-
             } else {
                 $arguments[] = null;
             }

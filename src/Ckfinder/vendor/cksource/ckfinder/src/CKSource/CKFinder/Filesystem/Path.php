@@ -4,7 +4,7 @@
  * CKFinder
  * ========
  * http://cksource.com/ckfinder
- * Copyright (C) 2007-2015, CKSource - Frederico Knabben. All rights reserved.
+ * Copyright (C) 2007-2016, CKSource - Frederico Knabben. All rights reserved.
  *
  * The software, this file and its contents are subject to the CKFinder
  * License. Please read the license.txt file before using, installing, copying,
@@ -15,18 +15,18 @@
 namespace CKSource\CKFinder\Filesystem;
 
 /**
- * Path class
+ * The Path class.
  */
 class Path
 {
-    const REGEX_INVALID_PATH = ',(/\.)|[[:cntrl:]]|(//)|(\\\\)|([\\:\*\?\"\<\>\|]),';
+    const REGEX_INVALID_PATH = ',(/\.)|[[:cntrl:]]|(//)|(\\\\)|([:\*\?\"\<\>\|]),';
 
     /**
-     * Checks if given path is valid
+     * Checks if a given path is valid.
      *
      * @param string $path path to be validated
      *
-     * @return bool true if path is valid
+     * @return bool true if the path is valid.
      */
     public static function isValid($path)
     {
@@ -34,7 +34,7 @@ class Path
     }
 
     /**
-     * Normalizes path so it starts and ends end with /
+     * Normalizes the path so it starts and ends end with a "/".
      *
      * @param string $path input path
      *
@@ -44,7 +44,7 @@ class Path
     {
         if (!strlen($path)) {
             $path = '/';
-        } else if ($path !== '/') {
+        } elseif ($path !== '/') {
             $path = '/' . trim($path, '/') . '/';
         }
 
@@ -52,7 +52,8 @@ class Path
     }
 
     /**
-     * This function behaves similar to System.IO.Path.Combine in C#, the only difference is that it also accepts null values and treat them as empty string
+     * This function behaves similarly to `System.IO.Path.Combine` in C#, the only difference is that it also
+     * accepts null values and treats them as an empty string.
      *
      * @param string [$arg1, $arg2, ...]
      *
@@ -103,7 +104,7 @@ class Path
                     $_lastCharP1 = substr($path1, -1, 1);
                     if (!$isDirSeparator($_lastCharP1) && !$isDirSeparator($_firstCharP2)) {
                         $path1 .= '/';
-                    } else if ($isDirSeparator($_lastCharP1) && $isDirSeparator($_firstCharP2)) {
+                    } elseif ($isDirSeparator($_lastCharP1) && $isDirSeparator($_firstCharP2)) {
                         $path2 = substr($path2, 1);
                     }
                 } else {

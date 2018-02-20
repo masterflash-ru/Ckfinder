@@ -4,7 +4,7 @@
  * CKFinder
  * ========
  * http://cksource.com/ckfinder
- * Copyright (C) 2007-2015, CKSource - Frederico Knabben. All rights reserved.
+ * Copyright (C) 2007-2016, CKSource - Frederico Knabben. All rights reserved.
  *
  * The software, this file and its contents are subject to the CKFinder
  * License. Please read the license.txt file before using, installing, copying,
@@ -20,51 +20,59 @@ use CKSource\CKFinder\Error;
 use CKSource\CKFinder\Exception\AccessDeniedException;
 use CKSource\CKFinder\Exception\InvalidUploadException;
 use CKSource\CKFinder\Filesystem\Folder\WorkingFolder;
+use CKSource\CKFinder\Utils;
+use Symfony\Component\HttpFoundation\File\MimeType\MimeTypeGuesser;
 use Symfony\Component\HttpFoundation\File\UploadedFile as UploadedFileBase;
 
 /**
- * Class UploadedFile
+ * The UploadedFile class.
  *
  * Represents uploaded file
  */
 class UploadedFile extends File
 {
     /**
-     * Symfony UploadedFile object
+     * A Symfony UploadedFile object.
      *
      * @var UploadedFileBase $uploadedFile
      */
     protected $uploadedFile;
 
     /**
-     * WorkingFolder object pointing on folder where file is uploaded
+     * A WorkingFolder object pointing to the folder where the file is uploaded.
      *
      * @var WorkingFolder $workingFolder
      */
     protected $workingFolder;
 
     /**
-     * Temporary path for uploaded file
+     * Temporary path for the uploaded file.
      *
      * @var string $tempFilePath
      */
     protected $tempFilePath;
 
     /**
-     * Constructor
+     * Constructor.
      *
      * @param UploadedFileBase $uploadedFile
      * @param CKFinder         $app
      *
-     * @throws \Exception if file upload failed
+     * @throws \Exception if file upload failed.
      */
     public function __construct(UploadedFileBase $uploadedFile, CKFinder $app)
     {
+        parent::__construct($uploadedFile->getClientOriginalName(), $app);
+
         $this->uploadedFile = $uploadedFile;
         $this->workingFolder = $app['working_folder'];
 
-        $this->tempFilePath = tempnam(sys_get_temp_dir(), 'ckf');
+        $this->tempFilePath = tempnam($this->config->get('tempDirectory'), 'ckf');
         $pathinfo = pathinfo($this->tempFilePath);
+
+        if (!is_writable($this->tempFilePath)) {
+            throw new InvalidUploadException('The temporary folder is not writable for CKFinder');
+        }
 
         try {
             $uploadedFile->move($pathinfo['dirname'], $pathinfo['basename']);
@@ -87,14 +95,12 @@ class UploadedFile extends File
                     throw new AccessDeniedException($errorMessage, array(), $e);
             }
         }
-
-        parent::__construct($uploadedFile->getClientOriginalName(), $app);
     }
 
     /**
-     * Checks if file was uploaded properly
+     * Checks if the file was uploaded properly.
      *
-     * @return bool true if upload is valid
+     * @return bool `true` if upload is valid.
      */
     public function isValid()
     {
@@ -102,34 +108,26 @@ class UploadedFile extends File
     }
 
     /**
-     * Sanitizes current file name using options set in Config
+     * Sanitizes current file name using options set in Config.
      */
     public function sanitizeFilename()
     {
-        $this->fileName = static::secureName($this->fileName, $this->config->get('disallowUnsafeCharacters'));
+        $this->fileName = static::secureName($this->fileName,
+            $this->config->get('disallowUnsafeCharacters'),
+            $this->config->get('forceAscii')
+        );
 
         $resourceType = $this->workingFolder->getResourceType();
 
         if ($this->config->get('checkDoubleExtension')) {
-            $pieces = explode('.', $this->fileName);
-
-            $basename = array_shift($pieces);
-            $extension = array_pop($pieces);
-
-            foreach ($pieces as $p) {
-                $basename .= $resourceType->isAllowedExtension($p) ? '.' : '_';
-                $basename .= $p;
-            }
-
-            // Add the last extension to the final name.
-            $this->fileName = $basename . '.' . $extension;
+            $this->fileName = Utils::replaceDisallowedExtensions($this->fileName, $resourceType);
         }
     }
 
     /**
-     * Checks if file extension is allowed in target folder
+     * Checks if the file extension is allowed in the target folder.
      *
-     * @return bool true if extension is allowed in target folder
+     * @return bool `true` if an extension is allowed in the target folder.
      */
     public function hasAllowedExtension()
     {
@@ -149,9 +147,9 @@ class UploadedFile extends File
     }
 
     /**
-     * Check if file was renamed
+     * Checks if the file was renamed.
      *
-     * @return bool true if file was renamed
+     * @return bool `true` if the file was renamed.
      */
     public function wasRenamed()
     {
@@ -159,9 +157,9 @@ class UploadedFile extends File
     }
 
     /**
-     * Check if current file name is defined as hidden in configuration settings
+     * Check if the current file name is defined as hidden in configuration settings.
      *
-     * @return bool true if filename is hidden
+     * @return bool `true` if the file name is hidden.
      */
     public function isHiddenFile()
     {
@@ -171,8 +169,8 @@ class UploadedFile extends File
     /**
      * Returns the upload error.
      *
-     * If the upload was successful, the constant UPLOAD_ERR_OK is returned.
-     * Otherwise one of the other UPLOAD_ERR_XXX constants is returned.
+     * If the upload was successful, the `UPLOAD_ERR_OK` constant is returned.
+     * Otherwise one of the other `UPLOAD_ERR_XXX` constants is returned.
      *
      * @return int upload error
      */
@@ -192,7 +190,7 @@ class UploadedFile extends File
     }
 
     /**
-     * Returns uploaded file contents
+     * Returns uploaded file contents.
      *
      * @return string uploaded file data
      */
@@ -202,7 +200,7 @@ class UploadedFile extends File
     }
 
     /**
-     * Returns contents stream for uploaded file
+     * Returns contents stream for the uploaded file.
      *
      * @return resource
      */
@@ -212,7 +210,7 @@ class UploadedFile extends File
     }
 
     /**
-     * Returns uploaded file size in bytes
+     * Returns uploaded file size in bytes.
      *
      * @return int file size in bytes
      */
@@ -224,11 +222,23 @@ class UploadedFile extends File
     }
 
     /**
-     * Detect HTML in the first KB to prevent against potential security issue with
-     * IE/Safari/Opera file type auto detection bug.
-     * Returns true if file contain insecure HTML code at the beginning.
+     * Returns uploaded file MIME type.
      *
-     * @return boolean true if uploaded file contains html in first 1024 bytes
+     * @return string
+     */
+    public function getMimeType()
+    {
+        $guesser = MimeTypeGuesser::getInstance();
+
+        return $guesser->guess($this->tempFilePath);
+    }
+
+    /**
+     * Detects HTML in the first KB to prevent against a potential security issue with
+     * IE/Safari/Opera file type auto detection bug.
+     * Returns `true` if a file contains insecure HTML code at the beginning.
+     *
+     * @return boolean `true` if the uploaded file contains HTML in the first 1024 bytes.
      */
     public function containsHtml()
     {
@@ -236,50 +246,13 @@ class UploadedFile extends File
         $chunk = fread($fp, 1024);
         fclose($fp);
 
-        $chunk = strtolower($chunk);
-
-        if (!$chunk) {
-            return false;
-        }
-
-        $chunk = trim($chunk);
-
-        if (preg_match("/<!DOCTYPE\W*X?HTML/sim", $chunk)) {
-            return true;
-        }
-
-        $tags = array('<body', '<head', '<html', '<img', '<pre', '<script', '<table', '<title');
-
-        foreach ($tags as $tag) {
-            if (false !== strpos($chunk, $tag)) {
-                return true ;
-            }
-        }
-
-        //type = javascript
-        if (preg_match('!type\s*=\s*[\'"]?\s*(?:\w*/)?(?:ecma|java)!sim', $chunk)) {
-            return true ;
-        }
-
-        //href = javascript
-        //src = javascript
-        //data = javascript
-        if (preg_match('!(?:href|src|data)\s*=\s*[\'"]?\s*(?:ecma|java)script:!sim', $chunk)) {
-            return true ;
-        }
-
-        //url(javascript
-        if (preg_match('!url\s*\(\s*[\'"]?\s*(?:ecma|java)script:!sim', $chunk)) {
-            return true ;
-        }
-
-        return false ;
+        return Utils::containsHtml($chunk);
     }
 
     /**
-     * Checks if file with current extension is allowed to contain any HTML/JS
+     * Checks if a file with the current extension is allowed to contain any HTML/JS.
      *
-     * @return bool true if file is allowed to contain HTML chunks
+     * @return bool `true` if a file is allowed to contain HTML chunks.
      */
     public function isAllowedHtmlFile()
     {
@@ -287,11 +260,11 @@ class UploadedFile extends File
     }
 
     /**
-     * Checks if file is a valid image
+     * Checks if the file is a valid image.
      *
-     * Internally `getimagesize` is used for validation
+     * Internally `getimagesize` is used for validation.
      *
-     * @return bool true if file is allowed to contain HTML chunks
+     * @return bool `true` if the file is a valid image.
      */
     public function isValidImage()
     {
@@ -303,12 +276,22 @@ class UploadedFile extends File
     }
 
     /**
-     * Sets given data as new file contents
+     * Saves the data as new file contents.
      *
      * @param string $data new file contents
      */
-    public function setContents($data)
+    public function save($data)
     {
         file_put_contents($this->tempFilePath, $data);
+    }
+
+    /**
+     * Destructor: Removes the temporary file, if required.
+     */
+    public function __destruct()
+    {
+        if (file_exists($this->tempFilePath)) {
+            unlink($this->tempFilePath);
+        }
     }
 }

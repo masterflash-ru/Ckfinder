@@ -1,5 +1,17 @@
 <?php
 
+/*
+ * CKFinder
+ * ========
+ * http://cksource.com/ckfinder
+ * Copyright (C) 2007-2016, CKSource - Frederico Knabben. All rights reserved.
+ *
+ * The software, this file and its contents are subject to the CKFinder
+ * License. Please read the license.txt file before using, installing, copying,
+ * modifying or distribute this file or part of its contents. The contents of
+ * this file is part of the Source Code of CKFinder.
+ */
+
 namespace CKSource\CKFinder\ResourceType;
 
 use CKSource\CKFinder\CKFinder;
@@ -14,6 +26,8 @@ class ResourceTypeFactory extends Container
 
     public function __construct(CKFinder $app)
     {
+        parent::__construct();
+
         $this->app = $app;
         $this->config = $app['config'];
         $this->backendFactory = $app['backend_factory'];
@@ -22,7 +36,7 @@ class ResourceTypeFactory extends Container
     }
 
     /**
-     * Returns resource type object with given name
+     * Returns the resource type object with a given name.
      *
      * @param string $name resource type name
      *

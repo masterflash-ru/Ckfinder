@@ -4,7 +4,7 @@
  * CKFinder
  * ========
  * http://cksource.com/ckfinder
- * Copyright (C) 2007-2015, CKSource - Frederico Knabben. All rights reserved.
+ * Copyright (C) 2007-2016, CKSource - Frederico Knabben. All rights reserved.
  *
  * The software, this file and its contents are subject to the CKFinder
  * License. Please read the license.txt file before using, installing, copying,
@@ -18,7 +18,7 @@ use CKSource\CKFinder\CKFinder;
 use CKSource\CKFinder\Filesystem\File\DeletedFile;
 
 /**
- * DeleteFileEvent event class
+ * The DeleteFileEvent event class.
  */
 class DeleteFileEvent extends CKFinderEvent
 {
@@ -28,7 +28,7 @@ class DeleteFileEvent extends CKFinderEvent
     protected $deletedFile;
 
     /**
-     * Constructor
+     * Constructor.
      *
      * @param CKFinder      $app
      * @param DeletedFile   $deletedFile
@@ -41,11 +41,23 @@ class DeleteFileEvent extends CKFinderEvent
     }
 
     /**
-     * Returns deleted file object
+     * Returns the deleted file object.
+     *
+     * @return DeletedFile
+     *
+     * @deprecated Please use getFile() instead.
+     */
+    public function getDeletedFile()
+    {
+        return $this->deletedFile;
+    }
+
+    /**
+     * Returns the deleted file object.
      *
      * @return DeletedFile
      */
-    public function getDeletedFile()
+    public function getFile()
     {
         return $this->deletedFile;
     }

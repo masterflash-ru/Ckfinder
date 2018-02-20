@@ -4,7 +4,7 @@
  * CKFinder
  * ========
  * http://cksource.com/ckfinder
- * Copyright (C) 2007-2015, CKSource - Frederico Knabben. All rights reserved.
+ * Copyright (C) 2007-2016, CKSource - Frederico Knabben. All rights reserved.
  *
  * The software, this file and its contents are subject to the CKFinder
  * License. Please read the license.txt file before using, installing, copying,
@@ -19,18 +19,18 @@ use Symfony\Component\EventDispatcher\Event;
 use Symfony\Component\HttpFoundation\Request;
 
 /**
- * CKFinderEvent class
+ * The CKFinderEvent class.
  *
- * Base class for all CKFinder events
+ * The base class for all CKFinder events.
  */
 class CKFinderEvent extends Event
 {
     /**
-     * beforeCommand events
+     * The beforeCommand events.
      *
-     * These events occurs before command is executed, after a particular
-     * command is resolved, i.e. it’s decided what command class should be used
-     * to handle current request.
+     * These events occur before a command is executed, after a particular
+     * command is resolved, i.e. it is decided which command class should be used
+     * to handle the current request.
      */
     const BEFORE_COMMAND_PREFIX             = 'ckfinder.beforeCommand.';
 
@@ -57,13 +57,14 @@ class CKFinderEvent extends Event
     const BEFORE_COMMAND_THUMBNAIL          = 'ckfinder.beforeCommand.thumbnail';
 
     /**
-     * Intermediate events
+     * Intermediate events.
      */
     const COPY_FILE              = 'ckfinder.copyFiles.copy';
     const CREATE_FOLDER          = 'ckfinder.createFolder.create';
     const DELETE_FILE            = 'ckfinder.deleteFiles.delete';
     const DELETE_FOLDER          = 'ckfinder.deleteFolder.delete';
     const DOWNLOAD_FILE          = 'ckfinder.downloadFile.download';
+    const PROXY_DOWNLOAD         = 'ckfinder.proxy.download';
     const FILE_UPLOAD            = 'ckfinder.uploadFile.upload';
     const MOVE_FILE              = 'ckfinder.moveFiles.move';
     const RENAME_FILE            = 'ckfinder.renameFile.rename';
@@ -76,9 +77,9 @@ class CKFinderEvent extends Event
     const CREATE_RESPONSE_PREFIX = 'ckfinder.createResponse.';
 
     /**
-     * afterCommand events
+     * The afterCommand events.
      *
-     * These events occurs after a command execution, when a response for
+     * These events occur after a command execution, when a response for
      * a command was created.
      */
     const AFTER_COMMAND_PREFIX             = 'ckfinder.afterCommand.';
@@ -106,12 +107,14 @@ class CKFinderEvent extends Event
     const AFTER_COMMAND_THUMBNAIL          = 'ckfinder.afterCommand.thumbnail';
 
     /**
+     * The CKFinder instance.
+     *
      * @var CKFinder $app
      */
     protected $app;
 
     /**
-     * Constructor
+     * Constructor.
      *
      * @param CKFinder $app
      */
@@ -121,7 +124,7 @@ class CKFinderEvent extends Event
     }
 
     /**
-     * Returns application DI container
+     * Returns the application dependency injection container.
      *
      * @return CKFinder
      */
@@ -131,7 +134,7 @@ class CKFinderEvent extends Event
     }
 
     /**
-     * Returns current request object
+     * Returns the current request object.
      *
      * @return Request|null
      */

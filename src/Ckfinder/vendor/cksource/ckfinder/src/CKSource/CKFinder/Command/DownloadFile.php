@@ -1,9 +1,18 @@
 <?php
 
-namespace CKSource\CKFinder\Command;
+/*
+ * CKFinder
+ * ========
+ * http://cksource.com/ckfinder
+ * Copyright (C) 2007-2016, CKSource - Frederico Knabben. All rights reserved.
+ *
+ * The software, this file and its contents are subject to the CKFinder
+ * License. Please read the license.txt file before using, installing, copying,
+ * modifying or distribute this file or part of its contents. The contents of
+ * this file is part of the Source Code of CKFinder.
+ */
 
 namespace CKSource\CKFinder\Command;
-
 
 use CKSource\CKFinder\Acl\Permission;
 use CKSource\CKFinder\Event\CKFinderEvent;
@@ -21,7 +30,7 @@ class DownloadFile extends CommandAbstract
 
     public function execute(Request $request, WorkingFolder $workingFolder, EventDispatcher $dispatcher)
     {
-        $fileName = $request->query->get('fileName');
+        $fileName = (string) $request->query->get('fileName');
 
         $downloadedFile = new DownloadedFile($fileName, $this->app);
 

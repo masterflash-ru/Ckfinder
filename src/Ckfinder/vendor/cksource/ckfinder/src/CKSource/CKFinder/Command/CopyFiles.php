@@ -1,8 +1,18 @@
 <?php
 
+/*
+ * CKFinder
+ * ========
+ * http://cksource.com/ckfinder
+ * Copyright (C) 2007-2016, CKSource - Frederico Knabben. All rights reserved.
+ *
+ * The software, this file and its contents are subject to the CKFinder
+ * License. Please read the license.txt file before using, installing, copying,
+ * modifying or distribute this file or part of its contents. The contents of
+ * this file is part of the Source Code of CKFinder.
+ */
 
 namespace CKSource\CKFinder\Command;
-
 
 use CKSource\CKFinder\Acl\Acl;
 use CKSource\CKFinder\Acl\Permission;
@@ -18,25 +28,34 @@ use Symfony\Component\HttpFoundation\Request;
 
 class CopyFiles extends CommandAbstract
 {
+    protected $requestMethod = Request::METHOD_POST;
+
     protected $requires = array(
         Permission::FILE_RENAME,
-        Permission::FILE_UPLOAD,
+        Permission::FILE_CREATE,
         Permission::FILE_DELETE
     );
 
     public function execute(Request $request, ResourceTypeFactory $resourceTypeFactory, Acl $acl, EventDispatcher $dispatcher)
     {
-        $copiedFiles = (array) $request->get('files');
+        $copiedFiles = (array) $request->request->get('files');
 
         $copied = 0;
 
         $errors = array();
 
+        // Initial validation
         foreach ($copiedFiles as $arr) {
             if (!isset($arr['name'], $arr['type'], $arr['folder'])) {
                 throw new InvalidRequestException();
             }
 
+            if (!$acl->isAllowed($arr['type'], $arr['folder'], Permission::FILE_VIEW)) {
+                throw new UnauthorizedException();
+            }
+        }
+
+        foreach ($copiedFiles as $arr) {
             if (empty($arr['name'])) {
                 continue;
             }
@@ -51,16 +70,15 @@ class CopyFiles extends CommandAbstract
 
             $options = isset($arr['options']) ? $arr['options'] : '';
 
-            if (!$acl->isAllowed($type, $folder, Permission::FILE_VIEW)) {
-                throw new UnauthorizedException();
-            }
+            $copiedFile->setCopyOptions($options);
+
 
             if ($copiedFile->isValid()) {
                 $copyFileEvent = new CopyFileEvent($this->app, $copiedFile);
                 $dispatcher->dispatch(CKFinderEvent::COPY_FILE, $copyFileEvent);
 
                 if (!$copyFileEvent->isPropagationStopped()) {
-                    if ($copiedFile->doCopy($options)) {
+                    if ($copiedFile->doCopy()) {
                         $copied++;
                     }
                 }

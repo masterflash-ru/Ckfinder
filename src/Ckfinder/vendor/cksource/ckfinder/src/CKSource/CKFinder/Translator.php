@@ -4,7 +4,7 @@
  * CKFinder
  * ========
  * http://cksource.com/ckfinder
- * Copyright (C) 2007-2015, CKSource - Frederico Knabben. All rights reserved.
+ * Copyright (C) 2007-2016, CKSource - Frederico Knabben. All rights reserved.
  *
  * The software, this file and its contents are subject to the CKFinder
  * License. Please read the license.txt file before using, installing, copying,
@@ -15,66 +15,68 @@
 namespace CKSource\CKFinder;
 
 /**
- * Exception class
+ * The Translator class.
  *
- * @copyright 2015 CKSource - Frederico Knabben
+ * @copyright 2016 CKSource - Frederico Knabben
  */
 class Translator
 {
     /**
-     * Array with translations
+     * An array with translations.
      *
      * @var array $translations
      */
     protected $translations;
 
-    public function __construct()
+    /**
+     * Translator constructor.
+     *
+     * @param string|null $langCode
+     */
+    public function __construct($langCode = null)
     {
-        $locale = isset($_GET['langCode']) ? (string) $_GET['langCode'] : 'en';
+        $locale = $langCode ?: (isset($_GET['langCode']) ? (string) $_GET['langCode'] : 'en');
 
         $this->setLocale($locale);
     }
 
     /**
-     * Sets locale for translations
+     * Sets locale for translations.
      *
      * @param string $locale
      */
-    public function setLocale($locale)
+    protected function setLocale($locale)
     {
-        if (null === $locale || !preg_match('/^[a-z\-]+$/', $locale) || !file_exists(__DIR__ . "/locales/{$locale}.php")) {
+        if (null === $locale || !preg_match('/^[a-z\-]{2,5}$/', $locale) || !file_exists(__DIR__ . "/locales/{$locale}.json")) {
             $locale = 'en';
         }
 
         if (null === $this->translations) {
-            $this->translations = require __DIR__ . "/locales/{$locale}.php";
+            $this->translations = json_decode(file_get_contents(__DIR__ . "/locales/{$locale}.json"), true);
         }
     }
 
     /**
-     * Translates error message for given error code
+     * Translates an error message for a given error code.
      *
      * @param int   $errorNumber  error number
-     * @param array $replacements array of replacements to use in translated message
+     * @param array $replacements array of replacements to use in the translated message.
      *
      * @return string
      */
-    public function translateErrorMessage($errorNumber, $replacements)
+    public function translateErrorMessage($errorNumber, $replacements = array())
     {
         $errorMessage = '';
 
         if ($errorNumber) {
-            if (isset($this->translations['Errors'][$errorNumber])) {
-                $errorMessage = $this->translations['Errors'][$errorNumber];
+            if (isset($this->translations['errors'][$errorNumber])) {
+                $errorMessage = $this->translations['errors'][$errorNumber];
 
-                $replacementsCount = count($replacements);
-
-                for ($i = 0; $i < $replacementsCount; $i++) {
-                    $errorMessage = str_replace('%' . ($i + 1), $replacements[$i], $errorMessage);
-
+                foreach ($replacements as $from => $to) {
+                    $errorMessage = str_replace('{' . $from . '}', $to, $errorMessage);
                 }
             } else {
-                $errorMessage = str_replace("%1", $errorNumber, $this->translations['ErrorUnknown']);
+                $errorMessage = str_replace('{number}', $errorNumber, $this->translations['errorUnknown']);
             }
         }
 

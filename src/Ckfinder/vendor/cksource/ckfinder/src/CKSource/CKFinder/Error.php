@@ -4,7 +4,7 @@
  * CKFinder
  * ========
  * http://cksource.com/ckfinder
- * Copyright (C) 2007-2015, CKSource - Frederico Knabben. All rights reserved.
+ * Copyright (C) 2007-2016, CKSource - Frederico Knabben. All rights reserved.
  *
  * The software, this file and its contents are subject to the CKFinder
  * License. Please read the license.txt file before using, installing, copying,
@@ -15,9 +15,9 @@
 namespace CKSource\CKFinder;
 
 /**
- * Error class
- * 
- * @copyright 2015 CKSource - Frederico Knabben
+ * The Error class.
+ *
+ * @copyright 2016 CKSource - Frederico Knabben
  */
 class Error
 {

@@ -4,7 +4,7 @@
  * CKFinder
  * ========
  * http://cksource.com/ckfinder
- * Copyright (C) 2007-2015, CKSource - Frederico Knabben. All rights reserved.
+ * Copyright (C) 2007-2016, CKSource - Frederico Knabben. All rights reserved.
  *
  * The software, this file and its contents are subject to the CKFinder
  * License. Please read the license.txt file before using, installing, copying,
@@ -24,16 +24,16 @@ use CKSource\CKFinder\Response\JsonResponse;
 use \Symfony\Component\HttpKernel\Exception\HttpException;
 
 /**
- * Exception handler class
- * 
- * All errors are resolved here and passed to the response
- * 
- * @copyright 2015 CKSource - Frederico Knabben
+ * The exception handler class.
+ *
+ * All errors are resolved here and passed to the response.
+ *
+ * @copyright 2016 CKSource - Frederico Knabben
  */
 class ExceptionHandler implements EventSubscriberInterface
 {
     /**
-     * Flag used to enable debug mode
+     * Flag used to enable the debug mode.
      *
      * @var bool $debug
      */
@@ -49,10 +49,10 @@ class ExceptionHandler implements EventSubscriberInterface
     protected $translator;
 
     /**
-     * Constructor
+     * Constructor.
      *
      * @param Translator      $translator translator object
-     * @param bool            $debug      true if debug mode is enabled
+     * @param bool            $debug      `true` if debug mode is enabled
      * @param LoggerInterface $logger     logger
      */
     public function __construct(Translator $translator, $debug = false, LoggerInterface $logger = null)
@@ -102,7 +102,7 @@ class ExceptionHandler implements EventSubscriberInterface
     }
 
     /**
-     * Custom error handler to catch all errors in debug mode
+     * Custom error handler to catch all errors in the debug mode.
      *
      * @param int    $errno
      * @param string $errstr
@@ -117,15 +117,15 @@ class ExceptionHandler implements EventSubscriberInterface
         $this->logger->warning($wrapperException);
 
         if (filter_var(ini_get('display_errors'), FILTER_VALIDATE_BOOLEAN)) {
-           throw $wrapperException;
+            throw $wrapperException;
         }
     }
 
     /**
-     * Method used to return all events and callbacks
-     * 
+     * Returns all events and callbacks.
+     *
      * @see <a href="http://api.symfony.com/2.5/Symfony/Component/EventDispatcher/EventSubscriberInterface.html">EventSubscriberInterface</a>
-     * 
+     *
      * @return array
      */
     public static function getSubscribedEvents()

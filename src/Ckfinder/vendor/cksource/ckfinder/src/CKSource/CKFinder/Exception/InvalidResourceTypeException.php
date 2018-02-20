@@ -4,7 +4,7 @@
  * CKFinder
  * ========
  * http://cksource.com/ckfinder
- * Copyright (C) 2007-2015, CKSource - Frederico Knabben. All rights reserved.
+ * Copyright (C) 2007-2016, CKSource - Frederico Knabben. All rights reserved.
  *
  * The software, this file and its contents are subject to the CKFinder
  * License. Please read the license.txt file before using, installing, copying,
@@ -17,18 +17,20 @@ namespace CKSource\CKFinder\Exception;
 use CKSource\CKFinder\Error;
 
 /**
- * Invalid resource type exception class
+ * The "invalid resource type" exception class.
  *
- * @copyright 2015 CKSource - Frederico Knabben
+ * Thrown when a request is trying to access an invalid resource type (e.g. one that does not exist).
+ *
+ * @copyright 2016 CKSource - Frederico Knabben
  */
 class InvalidResourceTypeException extends CKFinderException
 {
     /**
-     * Constructor
+     * Constructor.
      *
-     * @param string     $message    exception message
-     * @param array      $parameters parameters passed for translation
-     * @param \Exception $previous   previous exception
+     * @param string     $message    the exception message
+     * @param array      $parameters the parameters passed for translation
+     * @param \Exception $previous   the previous exception
      */
     public function __construct($message = null, $parameters = array(), \Exception $previous = null)
     {

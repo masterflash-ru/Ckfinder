@@ -4,7 +4,7 @@
  * CKFinder
  * ========
  * http://cksource.com/ckfinder
- * Copyright (C) 2007-2015, CKSource - Frederico Knabben. All rights reserved.
+ * Copyright (C) 2007-2016, CKSource - Frederico Knabben. All rights reserved.
  *
  * The software, this file and its contents are subject to the CKFinder
  * License. Please read the license.txt file before using, installing, copying,
@@ -18,46 +18,46 @@ use CKSource\CKFinder\Acl\User\RoleContextInterface;
 use CKSource\CKFinder\Filesystem\Path;
 
 /**
- * Acl class
- * 
- * @copyright 2015 CKSource - Frederico Knabben
+ * The Acl class.
+ *
+ * @copyright 2016 CKSource - Frederico Knabben
  */
 class Acl implements AclInterface
 {
     /**
-     * @brief List of Acl entries
-     * 
-     * A list of array entries in following form:
+     * @brief The list of Access Control Lists entries.
+     *
+     * A list of array entries in the following form:
      * <pre>[folderPath][role][resourceType] => MaskBuilder</pre>
-     * 
+     *
      * @var array $entries
      */
     protected $rules = array();
 
     /**
-     * @brief Role context interface
-     * 
+     * @brief The role context interface.
+     *
      * By default an instance of SessionRoleContext is used as a role context.
      * You can easily add a new class that implements RoleContextInterface to
      * better fit your application.
-     * 
+     *
      * @var RoleContextInterface $roleContext
      */
     protected $roleContext = null;
 
     /**
-     * @brief Cache for computed masks
+     * @brief Cache for computed masks.
      *
-     * This array contains computed masks results to avoid double checks
-     * for the same path
+     * This array contains computed mask results to avoid double checks
+     * for the same path.
      *
      * @var array $cachedResults
      */
     protected $cachedResults = array();
 
     /**
-     * Constructor
-     * 
+     * Constructor.
+     *
      * @param RoleContextInterface $roleContext
      */
     public function __construct(RoleContextInterface $roleContext)
@@ -66,38 +66,37 @@ class Acl implements AclInterface
     }
 
     /**
-     * Sets rules for Acl using config nodes
-     * 
-     * It's assumed that Acl config nodes used here have following form:
+     * Sets rules for Access Control Lists using configuration nodes.
+     *
+     * It is assumed that Acl configuration nodes used here have the following form:
      *
      * @code
      * array(
      *      'role'          => 'foo',
      *      'resourceType'  => 'Images',
      *      'folder'        => '/bar',
-     * 
+     *
      *      // Permissions
      *      'FOLDER_VIEW'   => true,
      *      'FOLDER_CREATE' => true,
      *      'FOLDER_RENAME' => true,
      *      'FOLDER_DELETE' => true,
-     * 
+     *
      *      'FILE_VIEW'     => true,
-     *      'FILE_UPLOAD'   => true,
+     *      'FILE_CREATE'   => true,
      *      'FILE_RENAME'   => true,
      *      'FILE_DELETE'   => true
      * )
      * @endcode
-     * 
-     * In case if any permission is missing it's inherited from the parent folder
      *
-     * @param array $aclConfigNodes Acl config nodes
+     * If any permission is missing, it is inherited from the parent folder.
+     *
+     * @param array $aclConfigNodes Access Control Lists configuration nodes
      *
      */
     public function setRules($aclConfigNodes)
     {
         foreach ($aclConfigNodes as $node) {
-
             $role = isset($node['role']) ? $node['role'] : "*";
 
             $resourceType = isset($node['resourceType']) ? $node['resourceType'] : "*";
@@ -107,7 +106,6 @@ class Acl implements AclInterface
             $permissions = Permission::getAll();
 
             foreach ($permissions as $permissionName => $permissionValue) {
-
                 if (isset($node[$permissionName])) {
                     $allow = (bool) $node[$permissionName];
 
@@ -122,7 +120,7 @@ class Acl implements AclInterface
     }
 
     /**
-     * Allows for permission for given role
+     * Allows a permission for a given role.
      *
      * @param string $resourceType
      * @param string $folderPath
@@ -148,7 +146,7 @@ class Acl implements AclInterface
     }
 
     /**
-     * Disallows for permission for given role
+     * Disallows a permission for a given role.
      *
      * @param string $resourceType
      * @param string $folderPath
@@ -174,7 +172,7 @@ class Acl implements AclInterface
     }
 
     /**
-     * Checks if given role has a permission
+     * Checks if a given role has a permission.
      *
      * @param string      $resourceType
      * @param string      $folderPath
@@ -191,7 +189,7 @@ class Acl implements AclInterface
     }
 
     /**
-     * Returns computed mask
+     * Returns a computed mask.
      *
      * @param string      $resourceType
      * @param string      $folderPath
@@ -241,13 +239,13 @@ class Acl implements AclInterface
     }
 
     /**
-     * Merges permissions masks to allow permissions inheritance from parent folders
-     * 
-     * @param int    $currentMask  current mask numeric value
-     * @param string $resourceType resource type identifier
-     * @param string $role         user role name
-     * @param string $folderPath   folder path
-     * 
+     * Merges permission masks to allow permission inheritance from parent folders.
+     *
+     * @param int    $currentMask  the current mask numeric value
+     * @param string $resourceType the resource type identifier
+     * @param string $role         the user role name
+     * @param string $folderPath   the folder path
+     *
      * @return int computed mask numeric value
      */
     protected function mergePathComputedMask($currentMask, $resourceType, $role, $folderPath)

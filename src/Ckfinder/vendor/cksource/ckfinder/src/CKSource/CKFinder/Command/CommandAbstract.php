@@ -4,7 +4,7 @@
  * CKFinder
  * ========
  * http://cksource.com/ckfinder
- * Copyright (C) 2007-2015, CKSource - Frederico Knabben. All rights reserved.
+ * Copyright (C) 2007-2016, CKSource - Frederico Knabben. All rights reserved.
  *
  * The software, this file and its contents are subject to the CKFinder
  * License. Please read the license.txt file before using, installing, copying,
@@ -13,32 +13,41 @@
  */
 
 namespace CKSource\CKFinder\Command;
+
 use CKSource\CKFinder\CKFinder;
 use CKSource\CKFinder\Exception\UnauthorizedException;
+use Symfony\Component\HttpFoundation\Request;
 
 /**
- * Base class for all Command classes
+ * The base class for all Command classes.
  *
- * @copyright 2015 CKSource - Frederico Knabben
+ * @copyright 2016 CKSource - Frederico Knabben
  */
 abstract class CommandAbstract
 {
     /**
-     * CKFinder instance
+     * The CKFinder instance.
      *
      * @var CKFinder $app
      */
     protected $app;
 
     /**
-     * An array of permissions required by command.
+     * The request method - by default GET.
+     *
+     * @var string
+     */
+    protected $requestMethod = Request::METHOD_GET;
+
+    /**
+     * An array of permissions required by the command.
      *
      * @var array $requires
      */
     protected $requires = array();
 
     /**
-     * Constructor
+     * Constructor.
      *
      * @param CKFinder $app
      */
@@ -48,7 +57,7 @@ abstract class CommandAbstract
     }
 
     /**
-     * Injects DI container to command scope
+     * Injects dependency injection container to the command scope.
      *
      * @param CKFinder $app
      */
@@ -58,9 +67,9 @@ abstract class CommandAbstract
     }
 
     /**
-     * Check permissions required by command before it's executed
+     * Checks permissions required by the command before it is executed.
      *
-     * @throws \Exception if access is restricted
+     * @throws \Exception if access is restricted.
      */
     public function checkPermissions()
     {
@@ -75,6 +84,16 @@ abstract class CommandAbstract
                 throw new UnauthorizedException();
             }
         }
+    }
+
+    /**
+     * Returns the name of the request method required by the command.
+     *
+     * @return string
+     */
+    public function getRequestMethod()
+    {
+        return $this->requestMethod;
     }
 
     /**

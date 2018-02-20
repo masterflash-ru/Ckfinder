@@ -4,7 +4,7 @@
  * CKFinder
  * ========
  * http://cksource.com/ckfinder
- * Copyright (C) 2007-2015, CKSource - Frederico Knabben. All rights reserved.
+ * Copyright (C) 2007-2016, CKSource - Frederico Knabben. All rights reserved.
  *
  * The software, this file and its contents are subject to the CKFinder
  * License. Please read the license.txt file before using, installing, copying,
@@ -23,16 +23,17 @@ use CKSource\CKFinder\Filesystem\Folder\WorkingFolder;
 use CKSource\CKFinder\Filesystem\Path;
 use CKSource\CKFinder\Image;
 use CKSource\CKFinder\ResizedImage\ResizedImageRepository;
+use CKSource\CKFinder\Utils;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
- * ImagePreview command class
+ * The ImagePreview command class.
  *
  * This command produces a resized copy of the image that
  * fits requested maximum dimensions.
  *
- * @copyright 2015 CKSource - Frederico Knabben
+ * @copyright 2016 CKSource - Frederico Knabben
  */
 class ImagePreview extends CommandAbstract
 {
@@ -40,17 +41,18 @@ class ImagePreview extends CommandAbstract
 
     public function execute(Request $request, Config $config, WorkingFolder $workingFolder, ResizedImageRepository $resizedImageRepository, CacheManager $cache)
     {
-        $fileName = $request->query->get('fileName');
-        list($requestedWidth, $requestedHeight) = Image::parseSize($request->get('size'));
+        $fileName = (string) $request->query->get('fileName');
+        list($requestedWidth, $requestedHeight) = Image::parseSize((string) $request->get('size'));
 
         $downloadedFile = new DownloadedFile($fileName, $this->app);
         $downloadedFile->isValid();
 
-        if (!Image::isSupportedExtension(pathinfo($fileName, PATHINFO_EXTENSION))) {
+        if (!Image::isSupportedExtension(pathinfo($fileName, PATHINFO_EXTENSION), $config->get('thumbnails.bmpSupported'))) {
             throw new InvalidExtensionException('Unsupported image type or not image file');
         }
 
-        header('Cache-Control:');
+        Utils::removeSessionCacheHeaders();
+
         $response = new Response();
         $response->setPublic();
         $response->setEtag(dechex($downloadedFile->getTimestamp()) . "-" . dechex($downloadedFile->getSize()));
@@ -102,15 +104,20 @@ class ImagePreview extends CommandAbstract
 
         // Fallback - get and resize the original image
         if (null === $resultImage) {
-            $resultImage = Image::create($downloadedFile->getContents());
+            $resultImage = Image::create($downloadedFile->getContents(), $config->get('thumbnails.bmpSupported'));
             $cache->set($cachedInfoPath, $resultImage->getInfo());
             $resultImage->resize($requestedWidth, $requestedHeight);
         }
 
-        $response->headers->set('Content-Type', $resultImage->getMimeType() . '; name="' . $downloadedFile->getFileName() . '"');
+        $mimeType = $resultImage->getMimeType();
+
+        if (in_array($mimeType, array('image/bmp', 'image/x-ms-bmp'))) {
+            $mimeType = 'image/jpeg'; // Image::getData() by default converts resized images to JPG
+        }
+
+        $response->headers->set('Content-Type', $mimeType. '; name="' . $downloadedFile->getFileName() . '"');
         $response->setContent($resultImage->getData());
 
         return $response;
     }
 }
-

@@ -4,7 +4,7 @@
  * CKFinder
  * ========
  * http://cksource.com/ckfinder
- * Copyright (C) 2007-2015, CKSource - Frederico Knabben. All rights reserved.
+ * Copyright (C) 2007-2016, CKSource - Frederico Knabben. All rights reserved.
  *
  * The software, this file and its contents are subject to the CKFinder
  * License. Please read the license.txt file before using, installing, copying,
@@ -17,20 +17,20 @@ namespace CKSource\CKFinder\Exception;
 use CKSource\CKFinder\Error;
 
 /**
- * Already exists exception class
+ * The "already exists" exception class.
  *
- * Throw when file or folder already exists.
+ * Thrown when a file or folder already exists.
  *
- * @copyright 2015 CKSource - Frederico Knabben
+ * @copyright 2016 CKSource - Frederico Knabben
  */
 class AlreadyExistsException extends CKFinderException
 {
     /**
-     * Constructor
+     * Constructor.
      *
-     * @param string     $message    exception message
-     * @param array      $parameters parameters passed for translation
-     * @param \Exception $previous   previous exception
+     * @param string     $message    the exception message
+     * @param array      $parameters the parameters passed for translation
+     * @param \Exception $previous   the previous exception
      */
     public function __construct($message = null, $parameters = array(), \Exception $previous = null)
     {

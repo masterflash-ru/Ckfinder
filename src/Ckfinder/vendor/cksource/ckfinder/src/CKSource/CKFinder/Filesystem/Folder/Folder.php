@@ -4,7 +4,7 @@
  * CKFinder
  * ========
  * http://cksource.com/ckfinder
- * Copyright (C) 2007-2015, CKSource - Frederico Knabben. All rights reserved.
+ * Copyright (C) 2007-2016, CKSource - Frederico Knabben. All rights reserved.
  *
  * The software, this file and its contents are subject to the CKFinder
  * License. Please read the license.txt file before using, installing, copying,
@@ -15,16 +15,40 @@
 namespace CKSource\CKFinder\Filesystem\Folder;
 
 use CKSource\CKFinder\Filesystem\File\File;
+use CKSource\CKFinder\Filesystem\Path;
+use CKSource\CKFinder\ResourceType\ResourceType;
 
 /**
- * Class Folder
+ * The Folder class.
  *
- * Represents a folder in filesystem
+ * Represents a folder in the file system.
  */
 class Folder
 {
     /**
-     * Check whether $folderName is a valid folder name, return true on success
+     * @var ResourceType $resourceType
+     */
+    protected $resourceType;
+
+    /**
+     * Backend relative path (includes the resource type directory).
+     *
+     * @var string $path
+     */
+    protected $path;
+
+    /**
+     * @param ResourceType $resourceType resource type
+     * @param string       $path         resource type relative path
+     */
+    public function __construct(ResourceType $resourceType, $path)
+    {
+        $this->resourceType = $resourceType;
+        $this->path = Path::combine($resourceType->getDirectory(), $path);
+    }
+
+    /**
+     * Checks whether `$folderName` is a valid folder name. Returns `true` on success.
      *
      * @param string $folderName
      * @param bool   $disallowUnsafeCharacters

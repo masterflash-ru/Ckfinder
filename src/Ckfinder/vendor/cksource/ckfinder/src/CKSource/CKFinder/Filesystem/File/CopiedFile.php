@@ -4,7 +4,7 @@
  * CKFinder
  * ========
  * http://cksource.com/ckfinder
- * Copyright (C) 2007-2015, CKSource - Frederico Knabben. All rights reserved.
+ * Copyright (C) 2007-2016, CKSource - Frederico Knabben. All rights reserved.
  *
  * The software, this file and its contents are subject to the CKFinder
  * License. Please read the license.txt file before using, installing, copying,
@@ -17,16 +17,15 @@ namespace CKSource\CKFinder\Filesystem\File;
 use CKSource\CKFinder\Backend\Backend;
 use CKSource\CKFinder\CKFinder;
 use CKSource\CKFinder\Error;
-use CKSource\CKFinder\Exception\FileNotFoundException;
 use CKSource\CKFinder\Exception\InvalidRequestException;
 use CKSource\CKFinder\Filesystem\Path;
 use CKSource\CKFinder\ResourceType\ResourceType;
 use CKSource\CKFinder\Filesystem\Folder\WorkingFolder;
 
 /**
- * Class CopiedFile
+ * The CopiedFile class.
  *
- * Represents copied file
+ * Represents a copied file.
  */
 class CopiedFile extends ExistingFile
 {
@@ -36,7 +35,22 @@ class CopiedFile extends ExistingFile
     protected $targetFolder;
 
     /**
-     * Constructor
+     * @var string $copyOptions defines copy options in case a file already exists
+     *                          in the target directory:
+     *                          - autorename - Renames the current file (see File::autorename()).
+     *                          - overwrite - Overwrites the existing file.
+     */
+    protected $copyOptions;
+
+    /**
+     * File name of the source file.
+     *
+     * @var string
+     */
+    protected $sourceFileName;
+
+    /**
+     * Constructor.
      *
      * @param string       $fileName     source file name
      * @param string       $folder       copied source file resource type relative path
@@ -47,13 +61,42 @@ class CopiedFile extends ExistingFile
     {
         $this->targetFolder = $app['working_folder'];
 
+        $this->sourceFileName = $fileName;
+
         parent::__construct($fileName, $folder, $resourceType, $app);
     }
 
     /**
-     * Checks if file has allowed extension in both source and target ResourceTypes
+     * Returns the target folder for a copied file.
      *
-     * @return bool true if file has allowed extension in source and target directories
+     * @return WorkingFolder
+     */
+    public function getTargetFolder()
+    {
+        return $this->targetFolder;
+    }
+
+    public function getFileName()
+    {
+        return $this->sourceFileName;
+    }
+
+    /**
+     * Sets copy options.
+     *
+     * @param string $copyOptions
+     *
+     * @see CopiedFile::$copyOptions
+     */
+    public function setCopyOptions($copyOptions)
+    {
+        $this->copyOptions = $copyOptions;
+    }
+
+    /**
+     * Checks if the file has an extension allowed in both source and target ResourceTypes.
+     *
+     * @return bool `true` if the file has an extension allowed in source and target directories.
      */
     public function hasAllowedExtension()
     {
@@ -68,7 +111,7 @@ class CopiedFile extends ExistingFile
     }
 
     /**
-     * Checks if copied file size doesn't exceed file size limit set for target folder
+     * Checks if the copied file size does not exceed the file size limit set for the target folder.
      *
      * @return bool
      */
@@ -103,21 +146,15 @@ class CopiedFile extends ExistingFile
     }
 
     /**
-     * Copies current file
+     * Copies the current file.
      *
-     * @param string $copyOptions defines copy options in case if file already exists
-     *                            in target directory:
-     *                            - autorename - renames current file (see File::autorename())
-     *                            - overwrite - overwrites existing file
-     *
-     * @return bool true if file was copied successfully
+     * @return bool `true` if the file was copied successfully.
      *
      * @throws \Exception
      */
-    public function doCopy($copyOptions)
+    public function doCopy()
     {
         $originalFileStream = $this->getContentsStream();
-        $originalFileName = $this->getFilename();
 
         // Don't copy file to itself
         if ($this->targetFolder->getBackend() === $this->resourceType->getBackend() &&
@@ -125,27 +162,26 @@ class CopiedFile extends ExistingFile
             $this->addError(Error::SOURCE_AND_TARGET_PATH_EQUAL);
 
             return false;
-        // Check if file already exists in target backend dir
-        } elseif ($this->targetFolder->containsFile($this->getFilename()) && strpos($copyOptions, 'overwrite') === false) {
-            if (strpos($copyOptions, 'autorename') !== false) {
-                $this->autorename();
-            } else {
-                $this->addError(Error::ALREADY_EXIST);
-
-                return false;
-            }
         }
 
-        if ($this->targetFolder->putStream($this->getFilename(), $originalFileStream)) {
+        $targetFilename = $this->getTargetFilename();
+
+        if ($this->targetFolder->containsFile($targetFilename) && strpos($this->copyOptions, 'overwrite') === false) {
+            $this->addError(Error::ALREADY_EXIST);
+
+            return false;
+        }
+
+        if ($this->targetFolder->putStream($targetFilename, $originalFileStream)) {
             $resizedImageRepository = $this->resourceType->getResizedImageRepository();
             $resizedImageRepository->copyResizedImages(
-                $this->resourceType, $this->folder, $originalFileName,
-                $this->targetFolder->getResourceType(), $this->targetFolder->getClientCurrentFolder(), $this->getFilename()
+                $this->resourceType, $this->folder, $this->sourceFileName,
+                $this->targetFolder->getResourceType(), $this->targetFolder->getClientCurrentFolder(), $targetFilename
             );
 
             $this->getCache()->copy(
-                Path::combine($this->resourceType->getName(), $this->folder, $originalFileName),
-                Path::combine($this->targetFolder->getResourceType()->getName(), $this->targetFolder->getClientCurrentFolder(), $this->getFilename())
+                Path::combine($this->resourceType->getName(), $this->folder, $this->sourceFileName),
+                Path::combine($this->targetFolder->getResourceType()->getName(), $this->targetFolder->getClientCurrentFolder(), $targetFilename)
             );
 
             return true;
@@ -157,9 +193,55 @@ class CopiedFile extends ExistingFile
     }
 
     /**
-     * Validates copied file
+     * Returns the target file name of the copied file.
      *
-     * @return bool true if copied file is valid and ready to be copied
+     * @return string
+     */
+    public function getTargetFilename()
+    {
+        if ($this->targetFolder->containsFile($this->getFilename()) &&
+            strpos($this->copyOptions, 'overwrite') === false &&
+            strpos($this->copyOptions, 'autorename') !== false) {
+            $this->autorename();
+        }
+
+        return $this->fileName;
+    }
+
+    /**
+     * Returns the source file name of the copied file.
+     *
+     * @return string
+     */
+    public function getSourceFilename()
+    {
+        return $this->sourceFileName;
+    }
+
+    /**
+     * Returns the target path of the copied file.
+     *
+     * @return string
+     */
+    public function getTargetFilePath()
+    {
+        return Path::combine($this->getTargetFolder()->getPath(), $this->getTargetFilename());
+    }
+
+    /**
+     * Returns the source file name of the copied file.
+     *
+     * @return string
+     */
+    public function getSourceFilePath()
+    {
+        return Path::combine($this->getPath(), $this->sourceFileName);
+    }
+
+    /**
+     * Validates the copied file.
+     *
+     * @return bool `true` if the copied file is valid and ready to be copied.
      *
      * @throws \Exception
      */

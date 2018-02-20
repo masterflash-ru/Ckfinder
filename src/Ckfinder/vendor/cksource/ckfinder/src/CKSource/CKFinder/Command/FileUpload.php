@@ -1,5 +1,17 @@
 <?php
 
+/*
+ * CKFinder
+ * ========
+ * http://cksource.com/ckfinder
+ * Copyright (C) 2007-2016, CKSource - Frederico Knabben. All rights reserved.
+ *
+ * The software, this file and its contents are subject to the CKFinder
+ * License. Please read the license.txt file before using, installing, copying,
+ * modifying or distribute this file or part of its contents. The contents of
+ * this file is part of the Source Code of CKFinder.
+ */
+
 namespace CKSource\CKFinder\Command;
 
 use CKSource\CKFinder\Acl\Permission;
@@ -22,7 +34,9 @@ use Symfony\Component\HttpFoundation\Request;
 
 class FileUpload extends CommandAbstract
 {
-    protected $requires = array(Permission::FILE_UPLOAD);
+    protected $requestMethod = Request::METHOD_POST;
+
+    protected $requires = array(Permission::FILE_CREATE);
 
     public function execute(Request $request, WorkingFolder $workingFolder, EventDispatcher $dispatcher, Config $config, CacheManager $cache, ThumbnailRepository $thumbsRepository)
     {
@@ -34,7 +48,7 @@ class FileUpload extends CommandAbstract
             );
 
             foreach ($uploadEvents as $eventName) {
-                $dispatcher->addListener($eventName, function(AfterCommandEvent $event) {
+                $dispatcher->addListener($eventName, function (AfterCommandEvent $event) {
                     $response = $event->getResponse();
                     $response->headers->set('Content-Type', 'text/plain');
                 });
@@ -96,10 +110,11 @@ class FileUpload extends CommandAbstract
             $imagesConfig = $config->get('images');
             $image = Image::create($uploadedFile->getContents());
 
-            if ($image->getWidth() > $imagesConfig['maxWidth'] || $image->getHeight() > $imagesConfig['maxHeight']) {
+            if ($imagesConfig['maxWidth'] && $image->getWidth() > $imagesConfig['maxWidth'] ||
+                $imagesConfig['maxHeight'] && $image->getHeight() > $imagesConfig['maxHeight']) {
                 $image->resize($imagesConfig['maxWidth'], $imagesConfig['maxHeight'], $imagesConfig['quality']);
                 $imageData = $image->getData();
-                $uploadedFile->setContents($imageData);
+                $uploadedFile->save($imageData);
             }
 
             $cache->set(
@@ -123,7 +138,11 @@ class FileUpload extends CommandAbstract
 
         if (!$event->isPropagationStopped()) {
             $uploadedFileStream = $uploadedFile->getContentsStream();
-            $uploaded = (int) $workingFolder->putStream($fileName, $uploadedFileStream);
+            $uploaded = (int) $workingFolder->putStream($fileName, $uploadedFileStream, $uploadedFile->getMimeType());
+
+            if (is_resource($uploadedFileStream)) {
+                fclose($uploadedFileStream);
+            }
 
             if ($overwriteOnUpload) {
                 $thumbsRepository->deleteThumbnails(
@@ -144,7 +163,7 @@ class FileUpload extends CommandAbstract
         );
 
         if ($warningErrorCode) {
-            $errorMessage = $this->app['translator']->translateErrorMessage($warningErrorCode, array($fileName));
+            $errorMessage = $this->app['translator']->translateErrorMessage($warningErrorCode, array('name' => $fileName));
             $responseData['error'] = array(
                 'number'  => $warningErrorCode,
                 'message' => $errorMessage

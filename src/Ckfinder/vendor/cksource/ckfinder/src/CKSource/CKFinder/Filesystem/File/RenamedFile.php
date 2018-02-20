@@ -4,7 +4,7 @@
  * CKFinder
  * ========
  * http://cksource.com/ckfinder
- * Copyright (C) 2007-2015, CKSource - Frederico Knabben. All rights reserved.
+ * Copyright (C) 2007-2016, CKSource - Frederico Knabben. All rights reserved.
  *
  * The software, this file and its contents are subject to the CKFinder
  * License. Please read the license.txt file before using, installing, copying,
@@ -22,22 +22,25 @@ use CKSource\CKFinder\Exception\InvalidNameException;
 use CKSource\CKFinder\Exception\InvalidRequestException;
 use CKSource\CKFinder\Filesystem\Path;
 use CKSource\CKFinder\ResourceType\ResourceType;
+use CKSource\CKFinder\Utils;
 
 /**
- * Class RenamedFile
+ * The RenamedFile class.
  *
- * Represents file being renamed
+ * Represents the file being renamed.
  */
 class RenamedFile extends ExistingFile
 {
     /**
-     * New file name
+     * New file name.
      *
      * @var string $newFileName
      */
     protected $newFileName;
 
     /**
+     * Constructor.
+     *
      * @param string       $newFileName  new file name
      * @param string       $fileName     current file name
      * @param string       $folder       current file folder
@@ -46,15 +49,53 @@ class RenamedFile extends ExistingFile
      */
     public function __construct($newFileName, $fileName, $folder, ResourceType $resourceType, CKFinder $app)
     {
-        $this->newFileName = $newFileName;
-
         parent::__construct($fileName, $folder, $resourceType, $app);
+
+        $this->newFileName = static::secureName(
+            $newFileName,
+            $this->config->get('disallowUnsafeCharacters'),
+            $this->config->get('forceAscii')
+        );
+
+        if ($this->config->get('checkDoubleExtension')) {
+            $this->newFileName = Utils::replaceDisallowedExtensions($this->newFileName, $resourceType);
+        }
     }
 
     /**
-     * Renames current file
+     * Returns the new file name of the renamed file.
      *
-     * @return bool true if file was renamed successfully
+     * @return string
+     */
+    public function getNewFileName()
+    {
+        return $this->newFileName;
+    }
+
+    /**
+     * Returns the new path of the renamed file.
+     *
+     * @return string
+     */
+    public function getNewFilePath()
+    {
+        return Path::combine($this->getPath(), $this->getNewFileName());
+    }
+
+    /**
+     * Sets the new file name of the renamed file.
+     *
+     * @param string $newFileName
+     */
+    public function setNewFileName($newFileName)
+    {
+        $this->newFileName = $newFileName;
+    }
+
+    /**
+     * Renames the current file.
+     *
+     * @return bool `true` if the file was renamed successfully.
      *
      * @throws \Exception
      */
@@ -85,7 +126,7 @@ class RenamedFile extends ExistingFile
     }
 
     /**
-     * Validates renamed file
+     * Validates the renamed file.
      *
      * @return bool
      *
@@ -93,10 +134,6 @@ class RenamedFile extends ExistingFile
      */
     public function isValid()
     {
-        if (!$this->exists()) {
-            throw new FileNotFoundException();
-        }
-
         $newExtension = pathinfo($this->newFileName, PATHINFO_EXTENSION);
 
         if (!$this->hasAllowedExtension()) {
@@ -114,6 +151,10 @@ class RenamedFile extends ExistingFile
         if (!File::isValidName($this->newFileName, $this->config->get('disallowUnsafeCharacters')) ||
             $this->resourceType->getBackend()->isHiddenFile($this->newFileName)) {
             throw new InvalidNameException('Invalid target file name');
+        }
+
+        if (!$this->exists()) {
+            throw new FileNotFoundException();
         }
 
         return true;

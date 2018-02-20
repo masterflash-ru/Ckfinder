@@ -4,7 +4,7 @@
  * CKFinder
  * ========
  * http://cksource.com/ckfinder
- * Copyright (C) 2007-2015, CKSource - Frederico Knabben. All rights reserved.
+ * Copyright (C) 2007-2016, CKSource - Frederico Knabben. All rights reserved.
  *
  * The software, this file and its contents are subject to the CKFinder
  * License. Please read the license.txt file before using, installing, copying,
@@ -17,24 +17,24 @@ namespace CKSource\CKFinder\Plugin;
 use CKSource\CKFinder\CKFinder;
 
 /**
- * Plugin interface
+ * The Plugin interface.
  *
- * @copyright 2015 CKSource - Frederico Knabben
+ * @copyright 2016 CKSource - Frederico Knabben
  */
 interface PluginInterface
 {
     /**
-     * Method used to inject DI container to the plugin
+     * Injects the DI container to the plugin.
      *
      * @param CKFinder $app
      */
     public function setContainer(CKFinder $app);
 
     /**
-     * Returns an array with default configuration for this plugin. Any of
-     * the plugin config options can be overwritten in CKFinder configuration file.
+     * Returns an array with the default configuration for this plugin. Any of
+     * the plugin configuration options can be overwritten in the CKFinder configuration file.
      *
-     * @return array plugin default configuration
+     * @return array default plugin configuration
      */
     public function getDefaultConfig();
 }

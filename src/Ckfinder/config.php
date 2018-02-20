@@ -146,6 +146,7 @@ $config['cache'] = array(
 );
 
 /*============================== End of Configuration =================================*/
+$config['csrfProtection'] = false;
 
 // Config must be returned - do not change it.
 return $config;

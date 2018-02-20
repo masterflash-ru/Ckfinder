@@ -4,7 +4,7 @@
  * CKFinder
  * ========
  * http://cksource.com/ckfinder
- * Copyright (C) 2007-2015, CKSource - Frederico Knabben. All rights reserved.
+ * Copyright (C) 2007-2016, CKSource - Frederico Knabben. All rights reserved.
  *
  * The software, this file and its contents are subject to the CKFinder
  * License. Please read the license.txt file before using, installing, copying,
@@ -22,11 +22,11 @@ use CKSource\CKFinder\ResizedImage\ResizedImage;
 use CKSource\CKFinder\ResizedImage\ResizedImageAbstract;
 
 /**
- * Thumbnail class
+ * The Thumbnail class.
  *
- * Class representing a thumbnail
+ * A class representing a thumbnail.
  *
- * @copyright 2015 CKSource - Frederico Knabben
+ * @copyright 2016 CKSource - Frederico Knabben
  */
 class Thumbnail extends ResizedImageAbstract
 {
@@ -37,13 +37,14 @@ class Thumbnail extends ResizedImageAbstract
 
 
     /**
-     * Array containing adjusted size info for this thumbnail.
+     * An array containing adjusted size info for this thumbnail.
      *
-     * Dimensions passed in $requestedWidth and $requestedHeight
+     * Dimensions passed in `$requestedWidth` and `$requestedHeight`
      * are adjusted to one of the allowed sizes. The smallest allowed
      * thumbnail size that is bigger than the requested one is used.
      *
      * Example array stored in this attribute:
+     *
      *     array('width' => '150', 'height' => '150', 'quality' => 80)
      *
      * @var array $adjustedSizeInfo
@@ -74,9 +75,9 @@ class Thumbnail extends ResizedImageAbstract
     }
 
     /**
-     * Adjusts the thumbnail dimensions.
+     * Adjusts thumbnail dimensions.
      *
-     * Dimensions passed in $requestedWidth and $requestedHeight
+     * Dimensions passed in `$requestedWidth` and `$requestedHeight`
      * are adjusted to one of the allowed sizes. The smallest allowed
      * thumbnail size that is bigger than the requested one is used.
      */
@@ -95,7 +96,7 @@ class Thumbnail extends ResizedImageAbstract
     }
 
     /**
-     * Returns backend-relative thumbnails directory
+     * Returns backend-relative thumbnails directory.
      *
      * @return string
      */
@@ -109,7 +110,7 @@ class Thumbnail extends ResizedImageAbstract
     }
 
     /**
-     * Creates a thumbnail
+     * Creates a thumbnail.
      *
      * @return bool
      *

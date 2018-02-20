@@ -4,7 +4,7 @@
  * CKFinder
  * ========
  * http://cksource.com/ckfinder
- * Copyright (C) 2007-2015, CKSource - Frederico Knabben. All rights reserved.
+ * Copyright (C) 2007-2016, CKSource - Frederico Knabben. All rights reserved.
  *
  * The software, this file and its contents are subject to the CKFinder
  * License. Please read the license.txt file before using, installing, copying,
@@ -20,11 +20,11 @@ use CKSource\CKFinder\Image;
 use CKSource\CKFinder\ResourceType\ResourceType;
 
 /**
- * Resized image class
+ * The resized image class.
  *
- * Class representing an image that was resized according to given dimensions
+ * A class representing an image that was resized to given dimensions.
  *
- * @copyright 2015 CKSource - Frederico Knabben
+ * @copyright 2016 CKSource - Frederico Knabben
  */
 class ResizedImage extends ResizedImageAbstract
 {
@@ -56,23 +56,24 @@ class ResizedImage extends ResizedImageAbstract
     protected $requestedSizeIsValid = true;
 
     /**
-     * Full source file path
+     * A full source file path.
      *
      * @var string $sourceFileDir
      */
     protected $sourceFileDir;
 
     /**
-     * @param ResizedImageRepository $resizedImageRepository
-     * @param ResourceType           $sourceFileResourceType
-     * @param string                 $sourceFileDir
-     * @param string                 $sourceFileName
-     * @param int                    $requestedWidth
-     * @param int                    $requestedHeight
+     * @param ResizedImageRepository $resizedImageRepository Resized image repository object
+     * @param ResourceType           $sourceFileResourceType Source image file resource type
+     * @param string                 $sourceFileDir          Resource type relative directory path
+     * @param string                 $sourceFileName         Source image filename
+     * @param int                    $requestedWidth         Requested width
+     * @param int                    $requestedHeight        Requested height
+     * @param bool                   $forceRequestedSize     A flag telling if the requested size should be used, without calculating the aspect ratio
      *
-     * @throws \Exception if source image is invalid
+     * @throws \Exception if the source image is invalid
      */
-    public function __construct(ResizedImageRepository $resizedImageRepository, ResourceType $sourceFileResourceType, $sourceFileDir, $sourceFileName, $requestedWidth, $requestedHeight)
+    public function __construct(ResizedImageRepository $resizedImageRepository, ResourceType $sourceFileResourceType, $sourceFileDir, $sourceFileName, $requestedWidth, $requestedHeight, $forceRequestedSize = false)
     {
         parent::__construct($sourceFileResourceType, $sourceFileDir, $sourceFileName, $requestedWidth, $requestedHeight);
 
@@ -83,40 +84,45 @@ class ResizedImage extends ResizedImageAbstract
         // Check if there's info about source image in cache
         $app = $this->resizedImageRepository->getContainer();
 
-        $cacheKey = Path::combine($sourceFileResourceType->getName(), $sourceFileDir, $sourceFileName);
 
-        $cachedInfo = $app['cache']->get($cacheKey);
+        if (!$forceRequestedSize) {
+            $cacheKey = Path::combine($sourceFileResourceType->getName(), $sourceFileDir, $sourceFileName);
 
-        // No info cached, get original image
-        if (null === $cachedInfo || !isset($cachedInfo['width']) || !isset($cachedInfo['height'])) {
-            $sourceFilePath = Path::combine($sourceFileResourceType->getDirectory(), $sourceFileDir, $sourceFileName);
+            $cachedInfo = $app['cache']->get($cacheKey);
 
-            if ($backend->isHiddenFile($sourceFileName) || !$backend->has($sourceFilePath)) {
-                throw new FileNotFoundException('ResizedImage::create(): Source file not found');
+            // No info cached, get original image
+            if (null === $cachedInfo || !isset($cachedInfo['width']) || !isset($cachedInfo['height'])) {
+                $sourceFilePath = Path::combine($sourceFileResourceType->getDirectory(), $sourceFileDir, $sourceFileName);
+
+                if ($backend->isHiddenFile($sourceFileName) || !$backend->has($sourceFilePath)) {
+                    throw new FileNotFoundException('ResizedImage::create(): Source file not found');
+                }
+
+                $originalImage = $this->image = Image::create($backend->read($sourceFilePath));
+
+                $app['cache']->set($cacheKey, $originalImage->getInfo());
+
+                $originalImageWidth = $originalImage->getWidth();
+                $originalImageHeight = $originalImage->getHeight();
+            } else {
+                $originalImageWidth = $cachedInfo['width'];
+                $originalImageHeight = $cachedInfo['height'];
             }
 
-            $originalImage = $this->image = Image::create($backend->read($sourceFilePath));
+            $targetSize = Image::calculateAspectRatio($requestedWidth, $requestedHeight, $originalImageWidth, $originalImageHeight);
 
-            $app['cache']->set($cacheKey, $originalImage->getInfo());
-
-            $originalImageWidth = $originalImage->getWidth();
-            $originalImageHeight = $originalImage->getHeight();
+            if ($targetSize['width'] >= $originalImageWidth || $targetSize['height'] >= $originalImageHeight) {
+                $this->width = $originalImageWidth;
+                $this->height = $originalImageHeight;
+                $this->requestedSizeIsValid = false;
+            } else {
+                $this->width = $targetSize['width'];
+                $this->height = $targetSize['height'];
+            }
         } else {
-            $originalImageWidth = $cachedInfo['width'];
-            $originalImageHeight = $cachedInfo['height'];
+            $this->width = $requestedWidth;
+            $this->height = $requestedHeight;
         }
-
-        $targetSize = Image::calculateAspectRatio($requestedWidth, $requestedHeight, $originalImageWidth, $originalImageHeight);
-
-        if ($targetSize['width'] >= $originalImageWidth || $targetSize['height'] >= $originalImageHeight) {
-            $this->width = $originalImageWidth;
-            $this->height = $originalImageHeight;
-            $this->requestedSizeIsValid = false;
-        } else {
-            $this->width = $targetSize['width'];
-            $this->height = $targetSize['height'];
-        }
-
 
         $this->resizedImageFileName = static::createFilename($sourceFileName, $this->width, $this->height);
     }
@@ -145,7 +151,7 @@ class ResizedImage extends ResizedImageAbstract
     }
 
     /**
-     * Returns directory of the resized image
+     * Returns the directory of the resized image.
      *
      * @return string
      */
@@ -159,7 +165,7 @@ class ResizedImage extends ResizedImageAbstract
     }
 
     /**
-     * Creates resized image
+     * Creates a resized image.
      */
     public function create()
     {
@@ -180,7 +186,7 @@ class ResizedImage extends ResizedImageAbstract
     }
 
     /**
-     * Returns direct url to resized image
+     * Returns the direct URL to the resized image.
      *
      * @return string
      */
@@ -189,23 +195,21 @@ class ResizedImage extends ResizedImageAbstract
         $backend = $this->sourceFileResourceType->getBackend();
 
         /**
-         * In case if requested size is bigger than size of the original image
+         * In case the requested size is bigger than the size of the original image,
          * the resized version was not created.
-         * This is a fallback that returns URL to the original image.
+         * This is a fallback that returns the URL to the original image.
          */
         if (!$this->requestedSizeIsValid()) {
-            $sourceFilePath = Path::combine($this->sourceFileResourceType->getDirectory(), $this->sourceFileDir, $this->sourceFileName);
-
-            return $backend->getFileUrl($sourceFilePath);
+            return $backend->getFileUrl($this->getResourceType(), $this->sourceFileDir, $this->sourceFileName);
         }
 
-        return $backend->getFileUrl($this->getFilePath());
+        return $backend->getFileUrl($this->sourceFileResourceType, $this->sourceFileDir, $this->sourceFileName, $this->getFileName());
     }
 
     /**
-     * Checks if size requested for resized image is valid
+     * Checks if the size requested for the resized image is valid.
      *
-     * @return bool true if requested size is valid
+     * @return bool `true` if the requested size is valid.
      */
     public function requestedSizeIsValid()
     {

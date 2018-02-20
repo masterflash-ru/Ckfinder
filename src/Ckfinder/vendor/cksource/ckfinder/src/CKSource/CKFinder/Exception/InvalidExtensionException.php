@@ -4,7 +4,7 @@
  * CKFinder
  * ========
  * http://cksource.com/ckfinder
- * Copyright (C) 2007-2015, CKSource - Frederico Knabben. All rights reserved.
+ * Copyright (C) 2007-2016, CKSource - Frederico Knabben. All rights reserved.
  *
  * The software, this file and its contents are subject to the CKFinder
  * License. Please read the license.txt file before using, installing, copying,
@@ -17,21 +17,21 @@ namespace CKSource\CKFinder\Exception;
 use CKSource\CKFinder\Error;
 
 /**
- * Invalid extension exception class
+ * The "invalid extension" exception class.
  *
- * Thrown when file has an invalid extension, for example if the extension
- * is not allowed for a resource type.
+ * Thrown when a file has an invalid extension, for example if the extension
+ * is not allowed for the resource type.
  *
- * @copyright 2015 CKSource - Frederico Knabben
+ * @copyright 2016 CKSource - Frederico Knabben
  */
 class InvalidExtensionException extends CKFinderException
 {
     /**
-     * Constructor
+     * Constructor.
      *
-     * @param string     $message    exception message
-     * @param array      $parameters parameters passed for translation
-     * @param \Exception $previous   previous exception
+     * @param string     $message    the exception message
+     * @param array      $parameters the parameters passed for translation
+     * @param \Exception $previous   the previous exception
      */
     public function __construct($message = 'Invalid extension', $parameters = array(), \Exception $previous = null)
     {

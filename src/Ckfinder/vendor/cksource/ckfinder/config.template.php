@@ -25,7 +25,7 @@ $config = array();
 /*============================ Enable PHP Connector HERE ==============================*/
 // http://docs.cksource.com/ckfinder3-php/configuration.html#configuration_options_authentication
 
-$config['authentication'] = function() {
+$config['authentication'] = function () {
     return false;
 };
 
@@ -113,7 +113,7 @@ $config['accessControl'][] = array(
     'FOLDER_DELETE'       => true,
 
     'FILE_VIEW'           => true,
-    'FILE_UPLOAD'         => true,
+    'FILE_CREATE'         => true,
     'FILE_RENAME'         => true,
     'FILE_DELETE'         => true,
 
@@ -150,8 +150,29 @@ $config['plugins'] = array();
 
 $config['cache'] = array(
     'imagePreview' => 24 * 3600,
-    'thumbnails'   => 24 * 3600 * 365
+    'thumbnails'   => 24 * 3600 * 365,
+    'proxyCommand' => 0
 );
+
+/*============================ Temp Directory settings ================================*/
+// http://docs.cksource.com/ckfinder3-php/configuration.html#configuration_options_tempDirectory
+
+$config['tempDirectory'] = sys_get_temp_dir();
+
+/*============================ Session Cause Performance Issues =======================*/
+// http://docs.cksource.com/ckfinder3-php/configuration.html#configuration_options_sessionWriteClose
+
+$config['sessionWriteClose'] = true;
+
+/*================================= CSRF protection ===================================*/
+// http://docs.cksource.com/ckfinder3-php/configuration.html#configuration_options_csrfProtection
+
+$config['csrfProtection'] = true;
+
+/*===================================== Headers =======================================*/
+// http://docs.cksource.com/ckfinder3-php/configuration.html#configuration_options_headers
+
+$config['headers'] = array();
 
 /*============================== End of Configuration =================================*/
 

@@ -4,7 +4,7 @@
  * CKFinder
  * ========
  * http://cksource.com/ckfinder
- * Copyright (C) 2007-2015, CKSource - Frederico Knabben. All rights reserved.
+ * Copyright (C) 2007-2016, CKSource - Frederico Knabben. All rights reserved.
  *
  * The software, this file and its contents are subject to the CKFinder
  * License. Please read the license.txt file before using, installing, copying,
@@ -18,26 +18,26 @@ use CKSource\CKFinder\CKFinder;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
- * BeforeCommandEvent event class
+ * The BeforeCommandEvent event class.
  */
 class AfterCommandEvent extends CKFinderEvent
 {
     /**
-     * Command name
+     * The command name.
      *
      * @var string $commandObject
      */
     protected $commandName;
 
     /**
-     * Response object received from a command
+     * The response object received from the command.
      *
      * @var Response $response
      */
     protected $response;
 
     /**
-     * Constructor
+     * Constructor.
      *
      * @param CKFinder $app
      * @param string   $commandName
@@ -52,7 +52,7 @@ class AfterCommandEvent extends CKFinderEvent
     }
 
     /**
-     * Returns the response object received from a command
+     * Returns the response object received from the command.
      *
      * @return Response
      */
@@ -62,7 +62,7 @@ class AfterCommandEvent extends CKFinderEvent
     }
 
     /**
-     * Sets the response to be returned
+     * Sets the response to be returned.
      *
      * @param Response $response
      */

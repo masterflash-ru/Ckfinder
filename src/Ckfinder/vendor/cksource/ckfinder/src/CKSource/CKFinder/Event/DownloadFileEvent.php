@@ -4,7 +4,7 @@
  * CKFinder
  * ========
  * http://cksource.com/ckfinder
- * Copyright (C) 2007-2015, CKSource - Frederico Knabben. All rights reserved.
+ * Copyright (C) 2007-2016, CKSource - Frederico Knabben. All rights reserved.
  *
  * The software, this file and its contents are subject to the CKFinder
  * License. Please read the license.txt file before using, installing, copying,
@@ -18,7 +18,7 @@ use CKSource\CKFinder\CKFinder;
 use CKSource\CKFinder\Filesystem\File\DownloadedFile;
 
 /**
- * DownloadFileEvent event class
+ * The DownloadFileEvent event class.
  */
 class DownloadFileEvent extends CKFinderEvent
 {
@@ -28,7 +28,7 @@ class DownloadFileEvent extends CKFinderEvent
     protected $downloadedFile;
 
     /**
-     * Constructor
+     * Constructor.
      *
      * @param CKFinder       $app
      * @param DownloadedFile $downloadedFile
@@ -41,11 +41,23 @@ class DownloadFileEvent extends CKFinderEvent
     }
 
     /**
-     * Returns downloaded file object
+     * Returns the downloaded file object.
+     *
+     * @return DownloadedFile
+     *
+     * @deprecated Please use getFile() instead.
+     */
+    public function getDownloadedFile()
+    {
+        return $this->downloadedFile;
+    }
+
+    /**
+     * Returns the downloaded file object.
      *
      * @return DownloadedFile
      */
-    public function getDownloadedFile()
+    public function getFile()
     {
         return $this->downloadedFile;
     }

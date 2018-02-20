@@ -4,7 +4,7 @@
  * CKFinder
  * ========
  * http://cksource.com/ckfinder
- * Copyright (C) 2007-2015, CKSource - Frederico Knabben. All rights reserved.
+ * Copyright (C) 2007-2016, CKSource - Frederico Knabben. All rights reserved.
  *
  * The software, this file and its contents are subject to the CKFinder
  * License. Please read the license.txt file before using, installing, copying,
@@ -18,7 +18,7 @@ use CKSource\CKFinder\CKFinder;
 use CKSource\CKFinder\Filesystem\File\RenamedFile;
 
 /**
- * RenameFileEvent event class
+ * The RenameFileEvent event class.
  */
 class RenameFileEvent extends CKFinderEvent
 {
@@ -28,7 +28,7 @@ class RenameFileEvent extends CKFinderEvent
     protected $renamedFile;
 
     /**
-     * Constructor
+     * Constructor.
      *
      * @param CKFinder    $app
      * @param RenamedFile $renamedFile
@@ -41,11 +41,23 @@ class RenameFileEvent extends CKFinderEvent
     }
 
     /**
-     * Returns renamed file object
+     * Returns the renamed file object.
+     *
+     * @return RenamedFile
+     *
+     * @deprecated Please use getFile() instead.
+     */
+    public function getRenamedFile()
+    {
+        return $this->renamedFile;
+    }
+
+    /**
+     * Returns the renamed file object.
      *
      * @return RenamedFile
      */
-    public function getRenamedFile()
+    public function getFile()
     {
         return $this->renamedFile;
     }

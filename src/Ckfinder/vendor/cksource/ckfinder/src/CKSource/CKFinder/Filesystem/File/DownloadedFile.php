@@ -4,7 +4,7 @@
  * CKFinder
  * ========
  * http://cksource.com/ckfinder
- * Copyright (C) 2007-2015, CKSource - Frederico Knabben. All rights reserved.
+ * Copyright (C) 2007-2016, CKSource - Frederico Knabben. All rights reserved.
  *
  * The software, this file and its contents are subject to the CKFinder
  * License. Please read the license.txt file before using, installing, copying,
@@ -21,7 +21,7 @@ use CKSource\CKFinder\Exception\InvalidNameException;
 use CKSource\CKFinder\Filesystem\Folder\WorkingFolder;
 
 /**
- * Class DownloadedFile
+ * The DownloadedFile class.
  *
  * Represents downloaded file
  */
@@ -33,7 +33,7 @@ class DownloadedFile extends ExistingFile
     protected $workingFolder;
 
     /**
-     * Constructor
+     * Constructor.
      *
      * @param string        $fileName
      * @param CKFinder      $app
@@ -46,9 +46,21 @@ class DownloadedFile extends ExistingFile
     }
 
     /**
-     * Validates the downloaded file
+     * Returns the folder of the downloaded file.
+     *
+     * @return WorkingFolder
+     */
+    public function getWorkingFolder()
+    {
+        return $this->workingFolder;
+    }
+
+    /**
+     * Validates the downloaded file.
      *
      * @throws \Exception
+     *
+     * @return boolean `true` if the file passed validation.
      */
     public function isValid()
     {
@@ -68,9 +80,9 @@ class DownloadedFile extends ExistingFile
     }
 
     /**
-     * Checks if file has allowed extension
+     * Checks if the file extension is allowed.
      *
-     * @return bool true if extension is allowed
+     * @return bool `true` if an extension is allowed.
      */
     public function hasAllowedExtension()
     {
@@ -84,9 +96,9 @@ class DownloadedFile extends ExistingFile
     }
 
     /**
-     * Checks if file is hidden
+     * Checks if the file is hidden.
      *
-     * @return bool true if file is hidden
+     * @return bool `true` if the file is hidden.
      */
     public function isHidden()
     {
@@ -94,9 +106,9 @@ class DownloadedFile extends ExistingFile
     }
 
     /**
-     * Checks if file exists
+     * Checks if the file exists.
      *
-     * @return bool true if file exists
+     * @return bool `true` if the file exists.
      */
     public function exists()
     {

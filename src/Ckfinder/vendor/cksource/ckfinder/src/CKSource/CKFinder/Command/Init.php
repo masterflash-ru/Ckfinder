@@ -4,7 +4,7 @@
  * CKFinder
  * ========
  * http://cksource.com/ckfinder
- * Copyright (C) 2007-2015, CKSource - Frederico Knabben. All rights reserved.
+ * Copyright (C) 2007-2016, CKSource - Frederico Knabben. All rights reserved.
  *
  * The software, this file and its contents are subject to the CKFinder
  * License. Please read the license.txt file before using, installing, copying,
@@ -30,7 +30,7 @@ class Init extends CommandAbstract
         $data = new \stdClass();
 
         /**
-         * Connector is always enabled here
+         * The connector is always enabled here.
          *
          * @see CKFinder::checkAuth()
          */
@@ -109,7 +109,6 @@ class Init extends CommandAbstract
             $requestedType = (string) $request->query->get('type');
 
             foreach ($resourceTypesNames as $resourceTypeName) {
-
                 if ($requestedType && $requestedType !== $resourceTypeName) {
                     continue;
                 }
@@ -131,21 +130,36 @@ class Init extends CommandAbstract
                     'maxSize'           => $resourceType->getMaxSize() ? min($resourceType->getMaxSize(), $phpMaxSize) : $phpMaxSize
                 );
 
+                $resourceTypeBackend = $resourceType->getBackend();
+
                 if ($resourceType->isLazyLoaded()) {
                     $resourceTypeObject['hasChildren'] = false;
                     $resourceTypeObject['lazyLoad'] = true;
                 } else {
-                    $resourceTypeObject['hasChildren'] = $resourceType->getBackend()->containsDirectories($resourceType, $resourceType->getDirectory());
+                    $resourceTypeObject['hasChildren'] = $resourceTypeBackend->containsDirectories($resourceType, $resourceType->getDirectory());
                 }
 
                 if ($label = $resourceType->getLabel()) {
                     $resourceTypeObject['label'] = $label;
                 }
 
-                $baseUrl = $resourceType->getBackend()->getBaseUrl();
+                $useProxyCommand = $resourceTypeBackend->usesProxyCommand();
 
-                if ($baseUrl) {
-                    $resourceTypeObject['url'] = Path::combine($baseUrl, $resourceType->getDirectory());
+                if ($useProxyCommand) {
+                    $resourceTypeObject['useProxyCommand'] = true;
+                } else {
+                    $baseUrl = $resourceTypeBackend->getBaseUrl();
+
+                    if ($baseUrl) {
+                        $resourceTypeObject['url'] = rtrim(Path::combine($baseUrl, $resourceType->getDirectory()), '/') . '/';
+                    }
+                }
+
+
+                $trackedOperations = $resourceTypeBackend->getTrackedOperations();
+
+                if (!empty($trackedOperations)) {
+                    $resourceTypeObject['trackedOperations'] = $trackedOperations;
                 }
 
                 $data->resourceTypes[] = $resourceTypeObject;
@@ -153,8 +167,15 @@ class Init extends CommandAbstract
         }
 
         $enabledPlugins = $config->get('plugins');
+
         if (!empty($enabledPlugins)) {
             $data->plugins = $enabledPlugins;
+        }
+
+        $proxyCacheLifetime = (int) $config->get('cache.proxyCommand');
+
+        if ($proxyCacheLifetime) {
+            $data->proxyCache = $proxyCacheLifetime;
         }
 
         return $data;

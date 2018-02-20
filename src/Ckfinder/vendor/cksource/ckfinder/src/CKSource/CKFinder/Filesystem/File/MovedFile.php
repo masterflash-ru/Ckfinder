@@ -4,7 +4,7 @@
  * CKFinder
  * ========
  * http://cksource.com/ckfinder
- * Copyright (C) 2007-2015, CKSource - Frederico Knabben. All rights reserved.
+ * Copyright (C) 2007-2016, CKSource - Frederico Knabben. All rights reserved.
  *
  * The software, this file and its contents are subject to the CKFinder
  * License. Please read the license.txt file before using, installing, copying,
@@ -19,14 +19,14 @@ use CKSource\CKFinder\Filesystem\Path;
 use CKSource\CKFinder\ResourceType\ResourceType;
 
 /**
- * Class MovedFile
+ * The MovedFile class.
  *
- * Represents moved file
+ * Represents the moved file.
  */
 class MovedFile extends CopiedFile
 {
     /**
-     * Constructor
+     * Constructor.
      *
      * @param string       $fileName     source file name
      * @param string       $folder       source file resource type relative path
@@ -39,23 +39,18 @@ class MovedFile extends CopiedFile
     }
 
     /**
-     * Moves current file
+     * Moves the current file.
      *
-     * @param string $moveOptions defines move options in case if file already exists
-     *                            in target directory:
-     *                            - autorename - renames current file (see File::autorename())
-     *                            - overwrite - overwrites existing file
-     *
-     * @return bool true if file was moved successfully
+     * @return bool `true` if the file was moved successfully.
      *
      * @throws \Exception
      */
-    public function doMove($moveOptions)
+    public function doMove()
     {
         $originalFilePath = $this->getFilePath();
         $originalFileName = $this->getFilename(); // Save original file name - it may be autorenamed when copied
 
-        if (parent::doCopy($moveOptions)) {
+        if (parent::doCopy()) {
             // Remove source file
             $this->deleteThumbnails();
             $this->resourceType->getResizedImageRepository()->deleteResizedImages($this->resourceType, $this->folder, $originalFileName);

@@ -4,7 +4,7 @@
  * CKFinder
  * ========
  * http://cksource.com/ckfinder
- * Copyright (C) 2007-2015, CKSource - Frederico Knabben. All rights reserved.
+ * Copyright (C) 2007-2016, CKSource - Frederico Knabben. All rights reserved.
  *
  * The software, this file and its contents are subject to the CKFinder
  * License. Please read the license.txt file before using, installing, copying,
@@ -18,26 +18,26 @@ use CKSource\CKFinder\CKFinder;
 use CKSource\CKFinder\Filesystem\Folder\WorkingFolder;
 
 /**
- * CreateFolderEvent event class
+ * The CreateFolderEvent event class.
  */
 class CreateFolderEvent extends CKFinderEvent
 {
     /**
-     * Working folder where the new folder is going to be created
+     * The working folder where the new folder is going to be created.
      *
      * @var WorkingFolder $workingFolder
      */
     protected $workingFolder;
 
     /**
-     * New folder name
+     * The new folder name.
      *
      * @var string
      */
     protected $newFolderName;
 
     /**
-     * Constructor
+     * Constructor.
      *
      * @param CKFinder      $app
      * @param WorkingFolder $workingFolder
@@ -52,6 +52,8 @@ class CreateFolderEvent extends CKFinderEvent
     }
 
     /**
+     * Returns the working folder where the new folder is going to be created.
+     *
      * @return WorkingFolder
      */
     public function getWorkingFolder()
@@ -60,7 +62,7 @@ class CreateFolderEvent extends CKFinderEvent
     }
 
     /**
-     * Returns the name of new folder
+     * Returns the name of the new folder.
      *
      * @return string
      */
@@ -70,7 +72,7 @@ class CreateFolderEvent extends CKFinderEvent
     }
 
     /**
-     * Sets the name for new folder
+     * Sets the name for the new folder.
      *
      * @param string $newFolderName
      */

@@ -4,7 +4,7 @@
  * CKFinder
  * ========
  * http://cksource.com/ckfinder
- * Copyright (C) 2007-2015, CKSource - Frederico Knabben. All rights reserved.
+ * Copyright (C) 2007-2016, CKSource - Frederico Knabben. All rights reserved.
  *
  * The software, this file and its contents are subject to the CKFinder
  * License. Please read the license.txt file before using, installing, copying,
@@ -16,19 +16,24 @@ namespace CKSource\CKFinder;
 
 use CKSource\CKFinder\Acl\Acl;
 use CKSource\CKFinder\Acl\User\SessionRoleContext;
+use CKSource\CKFinder\Authentication\CallableAuthentication;
 use CKSource\CKFinder\Backend\BackendFactory;
 use CKSource\CKFinder\Cache\CacheManager;
 use CKSource\CKFinder\Cache\Adapter\BackendAdapter;
 use CKSource\CKFinder\Event\AfterCommandEvent;
 use CKSource\CKFinder\Event\CKFinderEvent;
 use CKSource\CKFinder\Exception\CKFinderException;
+use CKSource\CKFinder\Exception\InvalidCsrfTokenException;
 use CKSource\CKFinder\Exception\InvalidPluginException;
 use CKSource\CKFinder\Filesystem\Folder\WorkingFolder;
 use CKSource\CKFinder\Filesystem\Path;
+use CKSource\CKFinder\Operation\OperationManager;
 use CKSource\CKFinder\Plugin\PluginInterface;
+use CKSource\CKFinder\Request\Transformer\JsonTransformer;
 use CKSource\CKFinder\ResourceType\ResourceTypeFactory;
 use CKSource\CKFinder\Response\JsonResponse;
 use CKSource\CKFinder\ResizedImage\ResizedImageRepository;
+use CKSource\CKFinder\Security\Csrf\DoubleSubmitCookieTokenValidator;
 use CKSource\CKFinder\Thumbnail\ThumbnailRepository;
 use League\Flysystem\Adapter\Local as LocalFSAdapter;
 use Monolog\Handler\ErrorLogHandler;
@@ -39,25 +44,26 @@ use Pimple\Container;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Event\FilterResponseEvent;
+use Symfony\Component\HttpKernel\Event\GetResponseEvent;
 use Symfony\Component\HttpKernel\Event\GetResponseForControllerResultEvent;
 use Symfony\Component\HttpKernel\HttpKernel;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
 use Symfony\Component\HttpKernel\KernelEvents;
 
-
 /**
- * CKFinder main class
+ * The main CKFinder class.
  *
- * It's based on <a href="http://pimple.sensiolabs.org/">Pimple</a>
- * so it serves also as a dependency injection container
+ * It is based on <a href="http://pimple.sensiolabs.org/">Pimple</a>
+ * so it also serves as a dependency injection container.
  *
- * @copyright 2015 CKSource - Frederico Knabben
+ * @copyright 2016 CKSource - Frederico Knabben
  */
 class CKFinder extends Container implements HttpKernelInterface
 {
-    const VERSION = '3.0.0';
+    const VERSION = '3.4.2';
 
     const COMMANDS_NAMESPACE = 'CKSource\\CKFinder\\Command\\';
     const PLUGINS_NAMESPACE = 'CKSource\\CKFinder\\Plugin\\';
@@ -69,10 +75,10 @@ class CKFinder extends Container implements HttpKernelInterface
     protected $booted = false;
 
     /**
-     * Constructor
+     * Constructor.
      *
      * @param array|string $config an array containing configuration options or a path
-     *                             to configuration file
+     *                             to the configuration file.
      *
      * @see config.php
      */
@@ -80,11 +86,16 @@ class CKFinder extends Container implements HttpKernelInterface
     {
         parent::__construct();
 
-
         $app = $this;
 
         $this['config'] = function () use ($config) {
             return new Config($config);
+        };
+
+        $this['authentication'] = function () use ($app) {
+            $config = $app['config'];
+
+            return new CallableAuthentication($config->get('authentication'));
         };
 
         $this['exception_handler'] = function () use ($app) {
@@ -94,8 +105,10 @@ class CKFinder extends Container implements HttpKernelInterface
         $this['dispatcher'] = function () use ($app) {
             $eventDispatcher = new EventDispatcher();
 
+            $eventDispatcher->addListener(KernelEvents::REQUEST, array($this, 'handleOptionsRequest'), 512);
             $eventDispatcher->addListener(KernelEvents::VIEW, array($this, 'createResponse'), -512);
             $eventDispatcher->addListener(KernelEvents::RESPONSE, array($this, 'afterCommand'), -512);
+
             $eventDispatcher->addSubscriber($app['exception_handler']);
 
             return $eventDispatcher;
@@ -113,12 +126,20 @@ class CKFinder extends Container implements HttpKernelInterface
             return new RequestStack();
         };
 
+        $this['request_transformer'] = function () {
+            return new JsonTransformer();
+        };
+
         $this['working_folder'] = function () use ($app) {
             $workingFolder = new WorkingFolder($app);
 
             $this['dispatcher']->addSubscriber($workingFolder);
 
             return $workingFolder;
+        };
+
+        $this['operation'] = function () use ($app) {
+            return new OperationManager($app);
         };
 
         $this['kernel'] = function () use ($app) {
@@ -137,7 +158,7 @@ class CKFinder extends Container implements HttpKernelInterface
         };
 
         $this['backend_factory'] = function () use ($app) {
-            return new BackendFactory($app['acl'], $app['config']);
+            return new BackendFactory($app);
         };
 
         $this['resource_type_factory'] = function () use ($app) {
@@ -178,23 +199,83 @@ class CKFinder extends Container implements HttpKernelInterface
 
             return $logger;
         };
+
+        if ($app['config']->get('csrfProtection')) {
+            $config = $app['config'];
+
+            $this['csrf_token_validator'] = function () use ($config) {
+                return new DoubleSubmitCookieTokenValidator();
+            };
+        }
     }
 
     /**
-     * Method used to check authentication
+     * Checks authentication.
      */
     public function checkAuth()
     {
-        $authenticationCallback = $this['config']->get('authentication');
+        /* @var $authentication \CKSource\CKFinder\Authentication\AuthenticationInterface */
+        $authentication = $this['authentication'];
 
-        if (!call_user_func($authenticationCallback)) {
+        if (!$authentication->authenticate()) {
             ini_set('display_errors', 0);
             throw new CKFinderException('CKFinder is disabled', Error::CONNECTOR_DISABLED);
         }
     }
 
     /**
-     * Create response
+     * Validates the CSRF token.
+     *
+     * @param Request $request
+     *
+     * @throws InvalidCsrfTokenException
+     */
+    public function checkCsrfToken(Request $request)
+    {
+        $ignoredMethods = array(Request::METHOD_GET, Request::METHOD_OPTIONS);
+
+        if (in_array($request->getMethod(), $ignoredMethods)) {
+            return;
+        }
+
+        /* @var $csrfTokenValidator \CKSource\CKFinder\Security\Csrf\TokenValidatorInterface */
+        $csrfTokenValidator = $this['csrf_token_validator'];
+
+        if (!$csrfTokenValidator->validate($request)) {
+            throw new InvalidCsrfTokenException();
+        }
+    }
+
+    /**
+     * A handler for OPTIONS HTTP method.
+     *
+     * If request HTTP method is OPTIONS it returns an empty response with
+     * extra headers defined in config.
+     * This handler is executed very early, so if required, the response is set
+     * even before the controller for current request is resolved.
+     *
+     * @param GetResponseEvent $event
+     */
+    public function handleOptionsRequest(GetResponseEvent $event)
+    {
+        if ($event->getRequest()->isMethod(Request::METHOD_OPTIONS)) {
+            $event->setResponse(Response::create('', Response::HTTP_OK, $this->getExtraHeaders()));
+        }
+    }
+
+    /**
+     * Returns an array of extra headers defined in `headers` config option.
+     *
+     * @return array An array of headers.
+     */
+    protected function getExtraHeaders()
+    {
+        $headers = $this['config']->get('headers');
+        return is_array($headers) ? $headers : array();
+    }
+
+    /**
+     * Creates a response.
      *
      * @param GetResponseForControllerResultEvent $event
      */
@@ -212,7 +293,7 @@ class CKFinder extends Container implements HttpKernelInterface
     }
 
     /**
-     * Fires afterCommand events
+     * Fires `afterCommand` events.
      *
      * @param FilterResponseEvent $event
      *
@@ -228,11 +309,17 @@ class CKFinder extends Container implements HttpKernelInterface
         $afterCommandEvent = new AfterCommandEvent($this, $commandName, $event->getResponse());
         $dispatcher->dispatch($eventName, $afterCommandEvent);
 
-        $event->setResponse($afterCommandEvent->getResponse());
+        // #161 Clear any garbage from the output
+        Response::closeOutputBuffers(0, false);
+
+        $response = $afterCommandEvent->getResponse();
+        $response->headers->add($this->getExtraHeaders());
+
+        $event->setResponse($response);
     }
 
     /**
-     * Registers listener for an event
+     * Registers a listener for an event.
      *
      * @param string   $eventName event name
      * @param callable $listener  listener callable
@@ -247,7 +334,7 @@ class CKFinder extends Container implements HttpKernelInterface
     }
 
     /**
-     * Main method used to handle request by CKFinder
+     * Main method used to handle a request by CKFinder.
      *
      * @param Request $request request object
      */
@@ -265,6 +352,8 @@ class CKFinder extends Container implements HttpKernelInterface
     }
 
     /**
+     * Returns the BackedFactory service.
+     *
      * @return BackendFactory
      */
     public function getBackendFactory()
@@ -273,6 +362,8 @@ class CKFinder extends Container implements HttpKernelInterface
     }
 
     /**
+     * Returns the ACL service.
+     *
      * @return Acl
      */
     public function getAcl()
@@ -281,6 +372,8 @@ class CKFinder extends Container implements HttpKernelInterface
     }
 
     /**
+     * Returns the current WorkingFolder object.
+     *
      * @return WorkingFolder
      */
     public function getWorkingFolder()
@@ -289,7 +382,7 @@ class CKFinder extends Container implements HttpKernelInterface
     }
 
     /**
-     * Shorthand for debugging using defined logger
+     * Shorthand for debugging using the defined logger.
      *
      * @param string $message
      * @param array  $context
@@ -304,9 +397,9 @@ class CKFinder extends Container implements HttpKernelInterface
     }
 
     /**
-     * Registers plugins defined in configuration file
+     * Registers plugins defined in the configuration file.
      *
-     * @throws \LogicException in case if plugin was not found or is invalid
+     * @throws \LogicException in case the plugin was not found or is invalid.
      */
     protected function registerPlugins()
     {
@@ -332,7 +425,7 @@ class CKFinder extends Container implements HttpKernelInterface
             $pluginClassName = CKFinder::PLUGINS_NAMESPACE . $pluginName . '\\' . $pluginName;
 
             if (!class_exists($pluginClassName)) {
-                throw new InvalidPluginException(sprintf('CKFinder plugin "%s" not found (%s)', $pluginName, $pluginClassName), array($pluginName));
+                throw new InvalidPluginException(sprintf('CKFinder plugin "%s" not found (%s)', $pluginName, $pluginClassName), array('pluginName' => $pluginName));
             }
 
             $pluginObject = new $pluginClassName($this);
@@ -340,13 +433,13 @@ class CKFinder extends Container implements HttpKernelInterface
             if ($pluginObject instanceof PluginInterface) {
                 $this->registerPlugin($pluginObject);
             } else {
-                throw new InvalidPluginException(sprintf('CKFinder plugin class must implement %sPluginInterface', CKFinder::PLUGINS_NAMESPACE), array($pluginName));
+                throw new InvalidPluginException(sprintf('CKFinder plugin class must implement %sPluginInterface', CKFinder::PLUGINS_NAMESPACE), array('pluginName' => $pluginName));
             }
         }
     }
 
     /**
-     * Registers plugin
+     * Registers the plugin.
      *
      * @param PluginInterface $plugin
      */
@@ -367,7 +460,7 @@ class CKFinder extends Container implements HttpKernelInterface
     }
 
     /**
-     * Returns an array containing all registered plugins
+     * Returns an array containing all registered plugins.
      *
      * @return array array of PluginInterface-s
      */
@@ -377,7 +470,7 @@ class CKFinder extends Container implements HttpKernelInterface
     }
 
     /**
-     * Returns plugin by name
+     * Returns a plugin by the name.
      *
      * @param string $name plugin name
      *
@@ -394,7 +487,7 @@ class CKFinder extends Container implements HttpKernelInterface
     }
 
     /**
-     * Checks PHP requirements
+     * Checks PHP requirements.
      *
      * @throws CKFinderException
      */
@@ -402,8 +495,8 @@ class CKFinder extends Container implements HttpKernelInterface
     {
         $errorMessage = 'The PHP installation does not meet the minimum system requirements for CKFinder. %s Please refer to CKFinder documentation for more details.';
 
-        if (version_compare(PHP_VERSION, '5.4.0') < 0) {
-            throw new CKFinderException(sprintf($errorMessage, 'Your PHP version is too old. CKFinder 3.x requires PHP 5.4+.'), Error::CUSTOM_ERROR);
+        if (version_compare(PHP_VERSION, '5.6.0') < 0) {
+            throw new CKFinderException(sprintf($errorMessage, 'Your PHP version is too old. CKFinder 3.x requires PHP 5.6+.'), Error::CUSTOM_ERROR);
         }
 
         $missingExtensions = array();
@@ -422,26 +515,46 @@ class CKFinder extends Container implements HttpKernelInterface
     }
 
     /**
-     * Prepares application environment before Request is dispatched
+     * Prepares application environment before the Request is dispatched.
+     *
+     * @param Request $request
+     *
+     * @throws CKFinderException
+     * @throws InvalidPluginException
      */
-    public function boot()
+    public function boot(Request $request)
     {
-        if (!$this->booted) {
-            $this->booted = true;
+        if ($this->booted) {
+            return;
+        }
 
-            $this->checkRequirements();
+        $this->booted = true;
 
-            if ($this['config']->get('debug') && $this['config']->isDebugLoggerEnabled('ckfinder_log')) {
-                $this->registerStreamLogger();
-            }
+        $config = $this['config'];
 
-            $this->checkAuth();
-            $this->registerPlugins();
+        $this->checkRequirements();
+
+        if ($config->get('debug') && $config->isDebugLoggerEnabled('ckfinder_log')) {
+            $this->registerStreamLogger();
+        }
+
+        $this->checkAuth();
+
+        if ($config->get('csrfProtection')) {
+            $this->checkCsrfToken($request);
+        }
+
+        $this->registerPlugins();
+
+        $commandName = (string) $request->query->get('command');
+
+        if ($config->get('sessionWriteClose') && $commandName !== 'Init' && session_status() === PHP_SESSION_ACTIVE) {
+            session_write_close();
         }
     }
 
     /**
-     * Registers stream handler for errors logging
+     * Registers a stream handler for error logging.
      */
     public function registerStreamLogger()
     {
@@ -450,7 +563,7 @@ class CKFinder extends Container implements HttpKernelInterface
         /* @var $logsBackend \CKSource\CKFinder\Backend\Backend */
         $logsBackend = $app['backend_factory']->getPrivateDirBackend('logs');
 
-        $adapter = $logsBackend->getAdapter();
+        $adapter = $logsBackend->getBaseAdapter();
 
         if ($adapter instanceof LocalFSAdapter) {
             $logsDir = $app['config']->getPrivateDirPath('logs');
@@ -461,7 +574,6 @@ class CKFinder extends Container implements HttpKernelInterface
 
             $app['logger']->pushHandler(new StreamHandler($logPath));
         }
-
     }
 
     /**
@@ -477,10 +589,17 @@ class CKFinder extends Container implements HttpKernelInterface
         /* @var $kernel HttpKernel */
         $kernel = $this['kernel'];
 
+        /* @var $requestTransformer \CKSource\CKFinder\Request\Transformer\TransformerInterface */
+        $requestTransformer = $this['request_transformer'];
+
+        if ($requestTransformer) {
+            $request = $requestTransformer->transform($request);
+        }
+
         // Handle early exceptions
         if (!$this->booted) {
             try {
-                $this->boot();
+                $this->boot($request);
             } catch (\Exception $e) {
                 $this['request_stack']->push($request);
                 $kernel->terminateWithException($e);
@@ -489,5 +608,42 @@ class CKFinder extends Container implements HttpKernelInterface
         }
 
         return $kernel->handle($request, $type, $catch);
+    }
+
+    /**
+     * Returns the current request object.
+     *
+     * @return Request
+     */
+    public function getRequest()
+    {
+        /* @var $requestStack RequestStack */
+        $requestStack = $this['request_stack'];
+
+        return $requestStack->getCurrentRequest();
+    }
+
+    /**
+     * Returns the resized image repository.
+     *
+     * @return ResizedImageRepository
+     */
+    public function getResizedImageRepository()
+    {
+        return $this['resized_image_repository'];
+    }
+
+    /**
+     * Returns the connector URL based on the current request.
+     *
+     * @param bool|true $full if set to `true`, the returned URL contains the scheme and host.
+     *
+     * @return string
+     */
+    public function getConnectorUrl($full = true)
+    {
+        $request = $this->getRequest();
+
+        return ($full ? $request->getSchemeAndHttpHost() : '').$request->getBaseUrl();
     }
 }

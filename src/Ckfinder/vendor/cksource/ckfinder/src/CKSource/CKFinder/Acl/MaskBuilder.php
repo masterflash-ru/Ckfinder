@@ -4,7 +4,7 @@
  * CKFinder
  * ========
  * http://cksource.com/ckfinder
- * Copyright (C) 2007-2015, CKSource - Frederico Knabben. All rights reserved.
+ * Copyright (C) 2007-2016, CKSource - Frederico Knabben. All rights reserved.
  *
  * The software, this file and its contents are subject to the CKFinder
  * License. Please read the license.txt file before using, installing, copying,
@@ -15,36 +15,36 @@
 namespace CKSource\CKFinder\Acl;
 
 /**
- * Mask builder class
- * 
- * Class used to build access control masks for folder access management.
- * Two masks are used to handle access rules inheritance from parent directories.
- * 
- * @copyright 2015 CKSource - Frederico Knabben
+ * The MaskBuilder class.
+ *
+ * A class used to build access control masks for folder access management.
+ * Two masks are used to handle access rule inheritance from parent directories.
+ *
+ * @copyright 2016 CKSource - Frederico Knabben
  */
 class MaskBuilder
 {
     /**
-     * Mask for allowed permissions
-     * 
+     * A mask for allowed permissions.
+     *
      * @var int $maskAllowed
      */
     protected $maskAllowed = 0;
 
     /**
-     * @brief Mask for disallowed permissions
-     * 
+     * @brief A mask for disallowed permissions.
+     *
      * @var int $maskDisallowed
      */
     protected $maskDisallowed = 0;
 
     /**
-     * Enables permission bit in mask for allowed permissions
-     * 
+     * Enables the permission bit in the mask for allowed permissions.
+     *
      * @param int $permission permission numeric value
      *
      * @see Permission
-     * 
+     *
      * @return MaskBuilder $this
      */
     public function allow($permission)
@@ -55,12 +55,12 @@ class MaskBuilder
     }
 
     /**
-     * Enables permission bit in mask for disallowed permissions
-     * 
+     * Enables the permission bit in the mask for disallowed permissions.
+     *
      * @param int $permission permission numeric value
      *
      * @see Permission
-     * 
+     *
      * @return MaskBuilder $this
      */
     public function disallow($permission)
@@ -71,15 +71,15 @@ class MaskBuilder
     }
 
     /**
-     * Merges masks permission rules to input mask numerical value.
-     * 
+     * Merges mask permission rules to input mask numeric value.
+     *
      * Modifies input mask numeric value to enable bits set in $maskAllowed
      * and disable bits set in $maskDisallowed.
-     * 
+     *
      * @param int $inputMask mask numeric value
-     * 
+     *
      * @return int computed mask value
-     * 
+     *
      * @see Acl::getComputedMask()
      */
     public function mergeRules($inputMask)

@@ -1,7 +1,18 @@
 <?php
 
-namespace CKSource\CKFinder\Command;
+/*
+ * CKFinder
+ * ========
+ * http://cksource.com/ckfinder
+ * Copyright (C) 2007-2016, CKSource - Frederico Knabben. All rights reserved.
+ *
+ * The software, this file and its contents are subject to the CKFinder
+ * License. Please read the license.txt file before using, installing, copying,
+ * modifying or distribute this file or part of its contents. The contents of
+ * this file is part of the Source Code of CKFinder.
+ */
 
+namespace CKSource\CKFinder\Command;
 
 use CKSource\CKFinder\Acl\Permission;
 use CKSource\CKFinder\Cache\CacheManager;
@@ -19,8 +30,8 @@ class GetResizedImages extends CommandAbstract
 
     public function execute(Request $request, WorkingFolder $workingFolder, ResizedImageRepository $resizedImageRepository, Config $config, CacheManager $cache)
     {
-        $fileName = $request->get('fileName');
-        $sizes = $request->get('sizes');
+        $fileName = (string) $request->get('fileName');
+        $sizes = (string) $request->get('sizes');
 
         $ext = pathinfo($fileName, PATHINFO_EXTENSION);
 
@@ -31,7 +42,7 @@ class GetResizedImages extends CommandAbstract
         if ($sizes) {
             $sizes = explode(',', $sizes);
             if (array_diff($sizes, array_keys($config->get('images.sizes')))) {
-                throw new InvalidRequestException(sprintf('Invalid size requested (%s)', $request->get('sizes')));
+                throw new InvalidRequestException(sprintf('Invalid size requested'));
             }
         }
 

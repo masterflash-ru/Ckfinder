@@ -1,17 +1,31 @@
 <?php
 
+/*
+ * CKFinder
+ * ========
+ * http://cksource.com/ckfinder
+ * Copyright (C) 2007-2016, CKSource - Frederico Knabben. All rights reserved.
+ *
+ * The software, this file and its contents are subject to the CKFinder
+ * License. Please read the license.txt file before using, installing, copying,
+ * modifying or distribute this file or part of its contents. The contents of
+ * this file is part of the Source Code of CKFinder.
+ */
+
 namespace CKSource\CKFinder\Command;
 
 use CKSource\CKFinder\Acl\Permission;
 use CKSource\CKFinder\Error;
 use CKSource\CKFinder\Config;
 use CKSource\CKFinder\Exception\CKFinderException;
+use CKSource\CKFinder\Exception\FileNotFoundException;
 use CKSource\CKFinder\Exception\InvalidNameException;
 use CKSource\CKFinder\Exception\InvalidRequestException;
 use CKSource\CKFinder\Filesystem\File\File;
 use CKSource\CKFinder\Filesystem\Folder\WorkingFolder;
 use CKSource\CKFinder\Image;
 use CKSource\CKFinder\Thumbnail\ThumbnailRepository;
+use CKSource\CKFinder\Utils;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -25,7 +39,7 @@ class Thumbnail extends CommandAbstract
             throw new CKFinderException('Thumbnails feature is disabled', Error::THUMBNAILS_DISABLED);
         }
 
-        $fileName = $request->get('fileName');
+        $fileName = (string) $request->get('fileName');
 
         $ext = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
 
@@ -37,18 +51,16 @@ class Thumbnail extends CommandAbstract
             throw new InvalidRequestException('Invalid file name');
         }
 
-        list($requestedWidth, $requestedHeight) = Image::parseSize($request->get('size'));
+        if (!$workingFolder->containsFile($fileName)) {
+            throw new FileNotFoundException();
+        }
+
+        list($requestedWidth, $requestedHeight) = Image::parseSize((string) $request->get('size'));
 
         $thumbnail = $thumbnailRepository->getThumbnail($workingFolder->getResourceType(),
             $workingFolder->getClientCurrentFolder(), $fileName, $requestedWidth, $requestedHeight);
 
-        /**
-         * This was added on purpose to reset any Cache-Control headers set
-         * for example by session_start(). Symfony Session has a workaround,
-         * but but we can't rely on this as application may not use Symfony
-         * components to handle sessions.
-         */
-        header('Cache-Control:');
+        Utils::removeSessionCacheHeaders();
 
         $response = new Response();
         $response->setPublic();
@@ -72,7 +84,6 @@ class Thumbnail extends CommandAbstract
             $expireTime->modify('+' . $thumbnailsCacheExpires . 'seconds');
             $response->setExpires($expireTime);
         }
-
 
         $response->headers->set('Content-Type', $thumbnail->getMimeType() . '; name="' . $thumbnail->getFileName() . '"');
         $response->setContent($thumbnail->getImageData());

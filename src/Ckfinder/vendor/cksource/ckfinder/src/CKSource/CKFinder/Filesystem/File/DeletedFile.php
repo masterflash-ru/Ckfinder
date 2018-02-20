@@ -4,7 +4,7 @@
  * CKFinder
  * ========
  * http://cksource.com/ckfinder
- * Copyright (C) 2007-2015, CKSource - Frederico Knabben. All rights reserved.
+ * Copyright (C) 2007-2016, CKSource - Frederico Knabben. All rights reserved.
  *
  * The software, this file and its contents are subject to the CKFinder
  * License. Please read the license.txt file before using, installing, copying,
@@ -20,16 +20,16 @@ use CKSource\CKFinder\Exception\InvalidRequestException;
 use CKSource\CKFinder\Filesystem\Path;
 
 /**
- * Class DeletedFile
+ * The DeletedFile class.
  *
- * Represents deleted file
+ * Represents the deleted file.
  */
 class DeletedFile extends ExistingFile
 {
     /**
-     * Deletes current file
+     * Deletes the current file.
      *
-     * @return bool true if file was deleted successfully
+     * @return bool `true` if the file was deleted successfully.
      *
      * @throws \Exception
      */

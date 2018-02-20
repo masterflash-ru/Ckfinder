@@ -1,5 +1,17 @@
 <?php
 
+/*
+ * CKFinder
+ * ========
+ * http://cksource.com/ckfinder
+ * Copyright (C) 2007-2016, CKSource - Frederico Knabben. All rights reserved.
+ *
+ * The software, this file and its contents are subject to the CKFinder
+ * License. Please read the license.txt file before using, installing, copying,
+ * modifying or distribute this file or part of its contents. The contents of
+ * this file is part of the Source Code of CKFinder.
+ */
+
 namespace CKSource\CKFinder\Command;
 
 use CKSource\CKFinder\Cache\CacheManager;
@@ -48,7 +60,7 @@ class QuickUpload extends FileUpload
 
         $response = $event->getResponse();
 
-        $funcNum = $request->get('CKEditorFuncNum');
+        $funcNum = (string) $request->get('CKEditorFuncNum');
         $funcNum = preg_replace('/[^0-9]/', '', $funcNum);
 
         if ($response instanceof JsonResponse) {

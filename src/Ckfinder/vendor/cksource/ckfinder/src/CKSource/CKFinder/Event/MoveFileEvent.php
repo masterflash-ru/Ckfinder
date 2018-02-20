@@ -4,7 +4,7 @@
  * CKFinder
  * ========
  * http://cksource.com/ckfinder
- * Copyright (C) 2007-2015, CKSource - Frederico Knabben. All rights reserved.
+ * Copyright (C) 2007-2016, CKSource - Frederico Knabben. All rights reserved.
  *
  * The software, this file and its contents are subject to the CKFinder
  * License. Please read the license.txt file before using, installing, copying,
@@ -18,7 +18,7 @@ use CKSource\CKFinder\CKFinder;
 use CKSource\CKFinder\Filesystem\File\MovedFile;
 
 /**
- * MoveFileEvent event class
+ * The MoveFileEvent event class.
  */
 class MoveFileEvent extends CKFinderEvent
 {
@@ -28,7 +28,7 @@ class MoveFileEvent extends CKFinderEvent
     protected $movedFile;
 
     /**
-     * Constructor
+     * Constructor.
      *
      * @param CKFinder     $app
      * @param MovedFile    $movedFile
@@ -41,11 +41,23 @@ class MoveFileEvent extends CKFinderEvent
     }
 
     /**
-     * Returns moved file object
+     * Returns the moved file object.
+     *
+     * @return MovedFile
+     *
+     * @deprecated Please use getFile() instead.
+     */
+    public function getMovedFile()
+    {
+        return $this->movedFile;
+    }
+
+    /**
+     * Returns the moved file object.
      *
      * @return MovedFile
      */
-    public function getMovedFile()
+    public function getFile()
     {
         return $this->movedFile;
     }

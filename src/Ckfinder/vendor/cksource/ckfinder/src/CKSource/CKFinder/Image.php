@@ -4,7 +4,7 @@
  * CKFinder
  * ========
  * http://cksource.com/ckfinder
- * Copyright (C) 2007-2015, CKSource - Frederico Knabben. All rights reserved.
+ * Copyright (C) 2007-2016, CKSource - Frederico Knabben. All rights reserved.
  *
  * The software, this file and its contents are subject to the CKFinder
  * License. Please read the license.txt file before using, installing, copying,
@@ -17,67 +17,74 @@ namespace CKSource\CKFinder;
 use CKSource\CKFinder\Exception\CKFinderException;
 
 /**
- * Image class
+ * The Image class.
  *
- * Class used for images processing
+ * The class used for image processing.
  *
- * @copyright 2015 CKSource - Frederico Knabben
+ * @copyright 2016 CKSource - Frederico Knabben
  */
 class Image
 {
     protected static $supportedExtensions = array('jpg', 'jpeg', 'gif', 'png');
 
     /**
-     * Image width
+     * Image width.
      *
      * @var int $witdh
      */
     protected $width;
 
     /**
-     * Image height
+     * Image height.
      *
      * @var int $height
      */
     protected $height;
 
     /**
-     * Image mime type
+     * Image MIME type.
      *
      * @var string $mime
      */
     protected $mime;
 
     /**
-     * Number of bits for each color
+     * Number of bits for each color.
      *
      * @var string $mime
      */
     protected $bits;
 
     /**
-     * Number of colors channels (i.e. 3 for RGB pictures and 4 for CMYK pictures)
+     * Number of color channels (i.e. 3 for RGB pictures and 4 for CMYK pictures).
      *
      * @var int $channels
      */
     protected $channels;
 
     /**
-     * GD image
+     * GD image.
      *
      * @var resource $gdImage
      */
     protected $gdImage;
 
     /**
-     * Size of image produced by getData() method
+     * The size of the image produced by the `getData()` method.
      *
      * @var int $dataSize
      */
     protected $dataSize;
 
     /**
-     * Factory method
+     * Quality of rescaled image.
+     *
+     * @var int
+     */
+    protected $resizeQuality;
+
+    /**
+     * The factory method.
      *
      * @param string $data
      * @param bool   $bmpSupport
@@ -90,13 +97,13 @@ class Image
     }
 
     /**
-     * Parses the image size from string in form [width]x[height],
-     * for example 278x219
+     * Parses the image size from a string in the form of `[width]x[height]`,
+     * for example 278x219.
      *
      * @param string $size WxH string
      *
-     * @return array array with width and height values array([width], [height]),
-     *               for above example array(278, 219)
+     * @return array An array with width and height values array([width], [height]),
+     *               for the example above: array(278, 219).
      */
     public static function parseSize($size)
     {
@@ -106,7 +113,7 @@ class Image
     }
 
     /**
-     * Checks if given exception is supported by Image class
+     * Checks if a given exception is supported by the Image class.
      *
      * @param string $extension
      * @param bool   $bmpSupport
@@ -125,11 +132,11 @@ class Image
     }
 
     /**
-     * Returns mime type for a given extension
+     * Returns the MIME type for a given extension.
      *
      * @param string $extension
      *
-     * @return string mime type
+     * @return string MIME type
      */
     public static function mimeTypeFromExtension($extension)
     {
@@ -148,12 +155,12 @@ class Image
     }
 
     /**
-     * Constructor
+     * Constructor.
      *
      * @param string $imageData  image data
-     * @param bool   $bmpSupport true if bitmaps are supported (be aware of poor efficiency)
+     * @param bool   $bmpSupport `true` if bitmaps are supported (be aware of poor efficiency!).
      *
-     * @throws CKFinderException in case if image couldn't be initialized properly
+     * @throws CKFinderException in case the image could not be initialized properly.
      */
 
     public function __construct($imageData, $bmpSupport = false)
@@ -210,7 +217,7 @@ class Image
     }
 
     /**
-     * Returns aspect ratio size as associative array:
+     * Returns the aspect ratio size as associative array:
      * @code
      * array
      * (
@@ -223,11 +230,11 @@ class Image
      * @param int  $maxHeight       requested height
      * @param int  $actualWidth     original width
      * @param int  $actualHeight    original height
-     * @param bool $useHigherFactor defines which factor should be used to calculate resized
+     * @param bool $useHigherFactor defines which factor should be used to calculate the new
      *                              size. For example:
      *                              - original image size 800x400
-     *                              - calculateAcpectRatio(300, 200, 800, 400, false) will return 300x150
-     *                              - calculateAcpectRatio(300, 200, 800, 400, true) will return 400x200
+     *                              - calculateAspectRatio(300, 200, 800, 400, false) will return 300x150
+     *                              - calculateAspectRatio(300, 200, 800, 400, true) will return 400x200
      *
      * @return array
      */
@@ -245,18 +252,17 @@ class Image
                 // Uses the higher Factor to change the opposite size
                 if ($iFactorX > $iFactorY) {
                     $oSize['height'] = (int) round($actualHeight * $iFactorX);
-                } else if ($iFactorX < $iFactorY) {
+                } elseif ($iFactorX < $iFactorY) {
                     $oSize['width'] = (int) round($actualWidth * $iFactorY);
                 }
             } else {
                 // Uses the lower Factor to change the opposite size
                 if ($iFactorX < $iFactorY) {
                     $oSize['height'] = (int) round($actualHeight * $iFactorX);
-                } else if ($iFactorX > $iFactorY) {
+                } elseif ($iFactorX > $iFactorY) {
                     $oSize['width'] = (int) round($actualWidth * $iFactorY);
                 }
             }
-
         }
 
         if ($oSize['height'] <= 0) {
@@ -337,7 +343,8 @@ class Image
 
     /**
      * @link http://pl.php.net/manual/en/function.imagecopyresampled.php
-     * replacement to imagecopyresampled that will deliver results that are almost identical except MUCH faster (very typically 30 times faster)
+     * Replacement to `imagecopyresampled` that will deliver results that are almost identical except
+     * MUCH faster (very typically 30 times faster).
      *
      * @static
      * @access public
@@ -366,7 +373,6 @@ class Image
             imagecopyresized($temp, $srcImage, $dstX, $dstY, $srcX, $srcY, $dstW + 1, $dstH + 1, $srcW, $srcH);
             imagecopyresized($dstImage, $temp, 0, 0, 0, 0, $dstW, $dstH, $dstW, $dstH);
             imagedestroy($temp);
-
         } elseif ($quality < 5 && (($dstW * $quality) < $srcW || ($dstH * $quality) < $srcH)) {
             $tmpW = $dstW * $quality;
             $tmpH = $dstH * $quality;
@@ -374,7 +380,6 @@ class Image
             imagecopyresized($temp, $srcImage, 0, 0, $srcX, $srcY, $tmpW + 1, $tmpH + 1, $srcW, $srcH);
             imagecopyresampled($dstImage, $temp, $dstX, $dstY, 0, 0, $dstW, $dstH, $tmpW, $tmpH);
             imagedestroy($temp);
-
         } else {
             imagecopyresampled($dstImage, $srcImage, $dstX, $dstY, $srcX, $srcY, $dstW, $dstH, $srcW, $srcH);
         }
@@ -384,7 +389,7 @@ class Image
 
     /**
      * Source: http://pl.php.net/imagecreate
-     * (optimized for speed and memory usage, but yet not very efficient)
+     * (optimized for speed and memory usage, but yet not very efficient).
      *
      * @param string $data bitmap data
      *
@@ -495,14 +500,23 @@ class Image
             }
         } elseif ($BMP['bits_per_pixel'] == 1) {
             $COLOR = unpack("n", $VIDE . substr($IMG, floor($P), 1));
-            if (($P * 8) % 8 == 0) $COLOR[1] = $COLOR[1] >> 7;
-            elseif (($P * 8) % 8 == 1) $COLOR[1] = ($COLOR[1] & 0x40) >> 6;
-            elseif (($P * 8) % 8 == 2) $COLOR[1] = ($COLOR[1] & 0x20) >> 5;
-            elseif (($P * 8) % 8 == 3) $COLOR[1] = ($COLOR[1] & 0x10) >> 4;
-            elseif (($P * 8) % 8 == 4) $COLOR[1] = ($COLOR[1] & 0x8) >> 3;
-            elseif (($P * 8) % 8 == 5) $COLOR[1] = ($COLOR[1] & 0x4) >> 2;
-            elseif (($P * 8) % 8 == 6) $COLOR[1] = ($COLOR[1] & 0x2) >> 1;
-            elseif (($P * 8) % 8 == 7) $COLOR[1] = ($COLOR[1] & 0x1);
+            if (($P * 8) % 8 == 0) {
+                $COLOR[1] = $COLOR[1] >> 7;
+            } elseif (($P * 8) % 8 == 1) {
+                $COLOR[1] = ($COLOR[1] & 0x40) >> 6;
+            } elseif (($P * 8) % 8 == 2) {
+                $COLOR[1] = ($COLOR[1] & 0x20) >> 5;
+            } elseif (($P * 8) % 8 == 3) {
+                $COLOR[1] = ($COLOR[1] & 0x10) >> 4;
+            } elseif (($P * 8) % 8 == 4) {
+                $COLOR[1] = ($COLOR[1] & 0x8) >> 3;
+            } elseif (($P * 8) % 8 == 5) {
+                $COLOR[1] = ($COLOR[1] & 0x4) >> 2;
+            } elseif (($P * 8) % 8 == 6) {
+                $COLOR[1] = ($COLOR[1] & 0x2) >> 1;
+            } elseif (($P * 8) % 8 == 7) {
+                $COLOR[1] = ($COLOR[1] & 0x1);
+            }
             $COLOR[1] = $PALETTE[$COLOR[1] + 1];
         } else {
             return false;
@@ -512,7 +526,7 @@ class Image
     }
 
     /**
-     * Resizes image to given size keeping the aspect ratio.
+     * Resizes an image to a given size keeping the aspect ratio.
      *
      * @param int  $maxWidth        maximum width
      * @param int  $maxHeight       maximum height
@@ -523,6 +537,8 @@ class Image
      */
     public function resize($maxWidth, $maxHeight, $quality = 80, $useHigherFactor = false)
     {
+        $this->resizeQuality = $quality;
+
         $maxWidth = (int) $maxWidth ?: $this->width;
         $maxHeight = (int) $maxHeight ?: $this->height;
 
@@ -556,13 +572,14 @@ class Image
     }
 
     /**
-     * Returns image data
+     * Returns image data.
      *
-     * @param string $format returned image format mimetype (current image mimetype is used if not set)
+     * @param string $format Returned image format mimetype (current image mimetype is used if not set).
+     * @param int $quality   Image quelity (used for JPG images only)
      *
      * @return string image data
      */
-    public function getData($format = null)
+    public function getData($format = null, $quality = 80)
     {
         $mime = $format ?: $this->mime;
 
@@ -575,7 +592,8 @@ class Image
             case 'image/jpeg':
             case 'image/bmp':
             case 'image/x-ms-bmp':
-                imagejpeg($this->gdImage);
+                $quality = $this->resizeQuality ?: $quality;
+                imagejpeg($this->gdImage, null, $quality);
                 break;
             case 'image/png':
                 imagealphablending($this->gdImage, false);
@@ -593,7 +611,7 @@ class Image
     }
 
     /**
-     * Returns GD image resource
+     * Returns GD image resource.
      *
      * @return resource GD image resource
      */
@@ -603,7 +621,7 @@ class Image
     }
 
     /**
-     * Returns size of image data produced by method getData()
+     * Returns the size of image data produced by the `getData()` method.
      *
      * @return int image data size in bytes
      */
@@ -613,7 +631,7 @@ class Image
     }
 
     /**
-     * Returns image width in pixels
+     * Returns image width in pixels.
      *
      * @return int image width
      */
@@ -623,7 +641,7 @@ class Image
     }
 
     /**
-     * Returns image height in pixels
+     * Returns image height in pixels.
      *
      * @return int image height
      */
@@ -633,7 +651,7 @@ class Image
     }
 
     /**
-     * Returns image MIME type
+     * Returns image MIME type.
      *
      * @return string MIME type
      */
@@ -666,8 +684,8 @@ class Image
     public function rotate($degrees, $bgcolor = 0)
     {
         if ($this->mime === 'image/png') {
-            imagesavealpha($this->gdImage , true);
-            $bgcolor = imagecolorallocatealpha($this->gdImage , 0, 0, 0, 127);
+            imagesavealpha($this->gdImage, true);
+            $bgcolor = imagecolorallocatealpha($this->gdImage, 0, 0, 0, 127);
         }
 
         $this->gdImage = imagerotate($this->gdImage, $degrees, $bgcolor);

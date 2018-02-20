@@ -4,7 +4,7 @@
  * CKFinder
  * ========
  * http://cksource.com/ckfinder
- * Copyright (C) 2007-2015, CKSource - Frederico Knabben. All rights reserved.
+ * Copyright (C) 2007-2016, CKSource - Frederico Knabben. All rights reserved.
  *
  * The software, this file and its contents are subject to the CKFinder
  * License. Please read the license.txt file before using, installing, copying,
@@ -14,33 +14,35 @@
 
 namespace CKSource\CKFinder\Exception;
 
+use Symfony\Component\HttpFoundation\Response;
+
 /**
- * Base CKFinder exception class
+ * The base CKFinder exception class.
  *
- * @copyright 2015 CKSource - Frederico Knabben
+ * @copyright 2016 CKSource - Frederico Knabben
  */
 class CKFinderException extends \Exception
 {
     /**
-     * An array of parameters passed for replacements used in translation
+     * An array of parameters passed for replacements used in translation.
      *
      * @var array $parameters
      */
     protected $parameters;
 
     /**
-     * HTTP response status code
+     * HTTP response status code.
      * @var int
      */
-    protected $httpStatusCode = 200;
+    protected $httpStatusCode = Response::HTTP_BAD_REQUEST;
 
     /**
-     * Constructor
+     * Constructor.
      *
-     * @param string     $message    exception message
-     * @param int        $code       exception code
-     * @param array      $parameters parameters passed for translation
-     * @param \Exception $previous   previous exception
+     * @param string     $message    the exception message
+     * @param int        $code       the exception code
+     * @param array      $parameters the parameters passed for translation
+     * @param \Exception $previous   the previous exception
      */
     public function __construct($message = null, $code = 0, $parameters = array(), \Exception $previous = null)
     {
@@ -50,7 +52,7 @@ class CKFinderException extends \Exception
     }
 
     /**
-     * Returns parameters used for replacements during translation
+     * Returns parameters used for replacements during translation.
      *
      * @return array
      */
@@ -60,6 +62,8 @@ class CKFinderException extends \Exception
     }
 
     /**
+     * Returns the HTTP status code for this exception.
+     *
      * @return int HTTP status code for exception
      */
     public function getHttpStatusCode()
@@ -68,7 +72,8 @@ class CKFinderException extends \Exception
     }
 
     /**
-     * Sets HTTP status code for this exception
+     * Sets the HTTP status code for this exception.
+     *
      * @param int $httpStatusCode
      *
      * @return $this

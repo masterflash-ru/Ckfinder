@@ -4,7 +4,7 @@
  * CKFinder
  * ========
  * http://cksource.com/ckfinder
- * Copyright (C) 2007-2015, CKSource - Frederico Knabben. All rights reserved.
+ * Copyright (C) 2007-2016, CKSource - Frederico Knabben. All rights reserved.
  *
  * The software, this file and its contents are subject to the CKFinder
  * License. Please read the license.txt file before using, installing, copying,
@@ -13,6 +13,7 @@
  */
 
 namespace CKSource\CKFinder\Backend\Adapter;
+
 use CKSource\CKFinder\Acl\Acl;
 use CKSource\CKFinder\Acl\Permission;
 use CKSource\CKFinder\Backend\Backend;
@@ -24,27 +25,27 @@ use CKSource\CKFinder\Utils;
 use League\Flysystem\Config as FSConfig;
 
 /**
- * Local filesystem adapter
+ * Local file system adapter.
  *
  * A wrapper class for \League\Flysystem\Adapter\Local with
- * additions for chmod permissions management and conversions
- * between filesystem and connector filename encoding.
+ * additions for `chmod` permissions management and conversions
+ * between the file system and connector file name encoding.
  */
 class Local extends \League\Flysystem\Adapter\Local
 {
     /**
-     * Backend configuration node
+     * Backend configuration node.
      *
      * @var array $backendConfig
      */
     protected $backendConfig;
 
     /**
-     * Consructor
+     * Constructor.
      *
      * @param array $backendConfig
      *
-     * @throws \Exception if root folder is not writable
+     * @throws \Exception if the root folder is not writable
      */
     public function __construct(array $backendConfig)
     {
@@ -63,15 +64,15 @@ class Local extends \League\Flysystem\Adapter\Local
             }
         }
 
-        if (!is_writable($backendConfig['root'])) {
-            throw new AccessDeniedException(sprintf('The root folder of backend "%s" is not writable (%s)', $backendConfig['name'], $backendConfig['root']));
+        if (!is_readable($backendConfig['root'])) {
+            throw new AccessDeniedException(sprintf('The root folder of backend "%s" is not readable (%s)', $backendConfig['name'], $backendConfig['root']));
         }
 
         parent::__construct($backendConfig['root']);
     }
 
     /**
-     * Create a directory
+     * Creates a directory.
      *
      * @param string   $dirname
      * @param FSConfig $config
@@ -98,7 +99,7 @@ class Local extends \League\Flysystem\Adapter\Local
     }
 
     /**
-     * Write a file
+     * Writes a file.
      *
      * @param string   $path
      * @param string   $contents
@@ -123,7 +124,7 @@ class Local extends \League\Flysystem\Adapter\Local
     }
 
     /**
-     * Write a file using stream
+     * Writes a file using stream.
      *
      * @param string   $path
      * @param resource $resource
@@ -133,7 +134,6 @@ class Local extends \League\Flysystem\Adapter\Local
      */
     public function writeStream($path, $resource, FSConfig $config)
     {
-
         $location = $this->applyPathPrefix($path);
         $this->ensureDirectory(dirname($location));
 
@@ -149,7 +149,7 @@ class Local extends \League\Flysystem\Adapter\Local
     }
 
     /**
-     * Ensure the root directory exists.
+     * Ensures that the root directory exists.
      *
      * @param string $root root directory path
      *
@@ -167,7 +167,7 @@ class Local extends \League\Flysystem\Adapter\Local
     }
 
     /**
-     * Check whether a file or directory is present
+     * Checks whether a file or directory is present.
      *
      * @param string $path
      *
@@ -181,7 +181,7 @@ class Local extends \League\Flysystem\Adapter\Local
     }
 
     /**
-     * Converts file/directory names to filesystem encoding
+     * Converts file or directory names to the file system encoding.
      *
      * @param string $fileName
      *
@@ -198,7 +198,7 @@ class Local extends \League\Flysystem\Adapter\Local
         if (!function_exists("iconv")) {
             if (strcasecmp($encoding, "ISO-8859-1") == 0 || strcasecmp($encoding, "ISO8859-1") == 0 || strcasecmp($encoding, "Latin1") == 0) {
                 return str_replace("\0", "_", utf8_decode($fileName));
-            } else if (function_exists('mb_convert_encoding')) {
+            } elseif (function_exists('mb_convert_encoding')) {
                 /**
                  * @todo check whether charset is supported - mb_list_encodings
                  */
@@ -222,7 +222,7 @@ class Local extends \League\Flysystem\Adapter\Local
     }
 
     /**
-     * Creates a stream for writing to a file
+     * Creates a stream for writing to a file.
      *
      * @param string $path
      *
@@ -246,7 +246,7 @@ class Local extends \League\Flysystem\Adapter\Local
     }
 
     /**
-     * Checks if directory contains subdirectories
+     * Checks if the directory contains subdirectories.
      *
      * @param Backend      $backend
      * @param ResourceType $resourceType

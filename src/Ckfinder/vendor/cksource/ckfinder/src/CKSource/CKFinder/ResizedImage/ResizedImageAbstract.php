@@ -1,8 +1,21 @@
 <?php
 
+/*
+ * CKFinder
+ * ========
+ * http://cksource.com/ckfinder
+ * Copyright (C) 2007-2016, CKSource - Frederico Knabben. All rights reserved.
+ *
+ * The software, this file and its contents are subject to the CKFinder
+ * License. Please read the license.txt file before using, installing, copying,
+ * modifying or distribute this file or part of its contents. The contents of
+ * this file is part of the Source Code of CKFinder.
+ */
+
 namespace CKSource\CKFinder\ResizedImage;
 
 use CKSource\CKFinder\Backend\Backend;
+use CKSource\CKFinder\Exception\CKFinderException;
 use CKSource\CKFinder\Filesystem\Path;
 use CKSource\CKFinder\Image;
 use CKSource\CKFinder\ResourceType\ResourceType;
@@ -10,78 +23,78 @@ use CKSource\CKFinder\ResourceType\ResourceType;
 abstract class ResizedImageAbstract
 {
     /**
-     * Source file resource type object
+     * The source file resource type object.
      *
      * @var ResourceType $sourceFileResourceType
      */
     protected $sourceFileResourceType;
 
     /**
-     * Backend where resized images are stored. By default
-     * it points to dir.thumbs local filesystem directory.
+     * The Backend where resized images are stored. By default
+     * it points to the `dir.thumbs` local file system directory.
      *
      * @var Backend $backend
      */
     protected $backend;
 
     /**
-     * Source file directory path
+     * The source file directory path.
      *
      * @var string $sourceFileDir
      */
     protected $sourceFileDir;
 
     /**
-     * Source file name
+     * The source file name.
      *
      * @var string $sourceFileName
      */
     protected $sourceFileName;
 
     /**
-     * Width requested for this resized image
+     * The width requested for this resized image.
      *
      * @var int $requestedWidth
      */
     protected $requestedWidth;
 
     /**
-     * Height requested for this resized image
+     * The height requested for this resized image.
      *
      * @var int $requestedHeight
      */
     protected $requestedHeight;
 
     /**
-     * Thumbnail file name. For example name of the resized image generated
-     * for a file example.jpg may look like example__300x300.jpg.
+     * Thumbnail file name. For example the name of the resized image generated
+     * for a file `example.jpg` may look like `example__300x300.jpg`.
      *
      * @var string $resizedImageFileName
      */
     protected $resizedImageFileName;
 
     /**
-     * Thumbnail image binary data
+     * Thumbnail image binary data.
      *
      * @var string $resizedImageData
      */
     protected $resizedImageData;
 
     /**
-     * Thumbnail image size in bytes
+     * Thumbnail image size in bytes.
      *
      * @var int $resizedImageSize
      */
     protected $resizedImageSize;
 
     /**
-     * Thumbnail image mime type
+     * Thumbnail image MIME type.
      * @var string $resizedImageMimeType
      */
     protected $resizedImageMimeType;
 
     /**
-     * Timestamp with last modification time of the resized image
+     * Timestamp with the last modification time of the resized image.
      *
      * @var int $timestamp
      */
@@ -106,7 +119,17 @@ abstract class ResizedImageAbstract
     }
 
     /**
-     * Returns resized image filename
+     * Returns the resized image resource type.
+     *
+     * @return ResourceType
+     */
+    public function getResourceType()
+    {
+        return $this->sourceFileResourceType;
+    }
+
+    /**
+     * Returns the resized image file name.
      *
      * @return string
      */
@@ -116,7 +139,7 @@ abstract class ResizedImageAbstract
     }
 
     /**
-     * Returns backend-relative resized image file path
+     * Returns the backend-relative resized image file path.
      *
      * @return string
      */
@@ -126,7 +149,7 @@ abstract class ResizedImageAbstract
     }
 
     /**
-     * Returns resized image image mime type
+     * Returns the resized image MIME type.
      *
      * @return string
      */
@@ -136,7 +159,7 @@ abstract class ResizedImageAbstract
     }
 
     /**
-     * Returns a timestamp of last modification of this resized image
+     * Returns a timestamp of the last modification of this resized image.
      *
      * @return int timestamp
      */
@@ -146,7 +169,7 @@ abstract class ResizedImageAbstract
     }
 
     /**
-     * Returns resized image image size in bytes
+     * Returns the resized image size in bytes.
      *
      * @return int
      */
@@ -156,7 +179,7 @@ abstract class ResizedImageAbstract
     }
 
     /**
-     * Returns resized image image binary data
+     * Returns the resized image binary data.
      *
      * @return string binary image date
      */
@@ -166,7 +189,7 @@ abstract class ResizedImageAbstract
     }
 
     /**
-     * Sets image data
+     * Sets the image data.
      *
      * @param string $imageData binary image data
      */
@@ -182,7 +205,7 @@ abstract class ResizedImageAbstract
     }
 
     /**
-     * Checks if resized image already exists
+     * Checks if the resized image already exists.
      *
      * @return bool
      */
@@ -192,9 +215,9 @@ abstract class ResizedImageAbstract
     }
 
     /**
-     * Saves the resized image in backend
+     * Saves the resized image in the backend.
      *
-     * @return bool true if saved successfully
+     * @return bool `true` if saved successfully.
      */
     public function save()
     {
@@ -202,7 +225,7 @@ abstract class ResizedImageAbstract
             $this->backend->createDir($this->getDirectory());
         }
 
-        $saved = $this->backend->put($this->getFilePath(), $this->resizedImageData);
+        $saved = $this->backend->put($this->getFilePath(), $this->resizedImageData, array('mimetype' => $this->getMimeType()));
 
         if ($saved) {
             $this->timestamp = time();
@@ -212,7 +235,7 @@ abstract class ResizedImageAbstract
     }
 
     /**
-     * Loads existing resized image image from a backend
+     * Loads an existing resized image from a backend.
      */
     public function load()
     {
@@ -225,12 +248,33 @@ abstract class ResizedImageAbstract
     }
 
     /**
-     * Creates the resized image
+     * Returns image data stream.
+     *
+     * @return bool|false|resource
+     *
+     * @throws CKFinderException
      */
-    public abstract function create();
+    public function readStream()
+    {
+        if (null === $this->resizedImageData) {
+            throw new CKFinderException('The resized image was not loaded from a backend yet. Please use ResizedImage::load() first.');
+        }
+
+        // The image should be already loaded the memory, no need to read stream from backend
+        $stream = fopen('php://temp', 'r+');
+        fwrite($stream, $this->resizedImageData);
+        rewind($stream);
+
+        return $stream;
+    }
 
     /**
-     * Returns directory path for resized image
+     * Creates the resized image.
      */
-    public abstract function getDirectory();
+    abstract public function create();
+
+    /**
+     * Returns a directory path for the resized image.
+     */
+    abstract public function getDirectory();
 }

@@ -4,7 +4,7 @@
  * CKFinder
  * ========
  * http://cksource.com/ckfinder
- * Copyright (C) 2007-2015, CKSource - Frederico Knabben. All rights reserved.
+ * Copyright (C) 2007-2016, CKSource - Frederico Knabben. All rights reserved.
  *
  * The software, this file and its contents are subject to the CKFinder
  * License. Please read the license.txt file before using, installing, copying,
@@ -18,26 +18,26 @@ use CKSource\CKFinder\CKFinder;
 use CKSource\CKFinder\Command\CommandAbstract;
 
 /**
- * BeforeCommandEvent event class
+ * The BeforeCommandEvent event class.
  */
 class BeforeCommandEvent extends CKFinderEvent
 {
     /**
-     * Command name
+     * The command name.
      *
      * @var string $commandObject
      */
     protected $commandName;
 
     /**
-     * Object of the command to be executed
+     * The object of the command to be executed.
      *
      * @var CommandAbstract $commandObject
      */
     protected $commandObject;
 
     /**
-     * Constructor
+     * Constructor.
      *
      * @param CKFinder        $app
      * @param string          $commandName
@@ -52,7 +52,7 @@ class BeforeCommandEvent extends CKFinderEvent
     }
 
     /**
-     * Returns the command object
+     * Returns the command object.
      *
      * @return CommandAbstract
      */
@@ -62,7 +62,7 @@ class BeforeCommandEvent extends CKFinderEvent
     }
 
     /**
-     * Sets the object of the command to be executed
+     * Sets the object of the command to be executed.
      *
      * @param CommandAbstract $commandObject
      */
@@ -72,7 +72,7 @@ class BeforeCommandEvent extends CKFinderEvent
     }
 
     /**
-     * Returns command name
+     * Returns the name of the command.
      *
      * @return string command name
      */

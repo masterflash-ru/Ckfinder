@@ -4,7 +4,7 @@
  * CKFinder
  * ========
  * http://cksource.com/ckfinder
- * Copyright (C) 2007-2015, CKSource - Frederico Knabben. All rights reserved.
+ * Copyright (C) 2007-2016, CKSource - Frederico Knabben. All rights reserved.
  *
  * The software, this file and its contents are subject to the CKFinder
  * License. Please read the license.txt file before using, installing, copying,
@@ -15,24 +15,24 @@
 namespace CKSource\CKFinder\Acl\User;
 
 /**
- * SessionRoleContext class
- * 
- * SessionRoleContext is used to get used role form defined $_SESSION field.
- * 
- * @copyright 2015 CKSource - Frederico Knabben
+ * The SessionRoleContext class.
+ *
+ * SessionRoleContext is used to get the user role from the defined $_SESSION field.
+ *
+ * @copyright 2016 CKSource - Frederico Knabben
  */
 class SessionRoleContext implements RoleContextInterface
 {
     /**
-     * $_SESSION field name to use
-     * 
+     * The $_SESSION field name to use.
+     *
      * @var string $sessionRoleField
      */
     protected $sessionRoleField;
 
     /**
-     * Sets $_SESSION field name to use
-     * 
+     * Sets the $_SESSION field name to use.
+     *
      * @param string $sessionRoleField
      */
     public function __construct($sessionRoleField)
@@ -41,7 +41,7 @@ class SessionRoleContext implements RoleContextInterface
     }
 
     /**
-     * Returns role name of the current user
+     * Returns the role name of the current user.
      *
      * @return null|string
      */

@@ -4,7 +4,7 @@
  * CKFinder
  * ========
  * http://cksource.com/ckfinder
- * Copyright (C) 2007-2015, CKSource - Frederico Knabben. All rights reserved.
+ * Copyright (C) 2007-2016, CKSource - Frederico Knabben. All rights reserved.
  *
  * The software, this file and its contents are subject to the CKFinder
  * License. Please read the license.txt file before using, installing, copying,
@@ -14,29 +14,30 @@
 
 namespace CKSource\CKFinder\Backend\Adapter;
 
-use Dropbox\Client;
+use League\Flysystem\Util\MimeType;
+use Spatie\Dropbox\Client as DropboxClient;
 
 /**
- * Class Dropbox
+ * The Dropbox class.
  *
- * Extends default Dropbox adapter to add some extra features
+ * Extends the default Dropbox adapter to add some extra features.
  */
-class Dropbox extends \League\Flysystem\Dropbox\DropboxAdapter
+class Dropbox extends \Spatie\FlysystemDropbox\DropboxAdapter
 {
     /**
-     * Backend configuration node
+     * Backend configuration node.
      *
      * @var array $backendConfig
      */
     protected $backendConfig;
 
     /**
-     * Constructor
+     * Constructor.
      *
-     * @param Client $client
+     * @param DropboxClient $client
      * @param array  $backendConfig
      */
-    public function __construct(Client $client, array $backendConfig)
+    public function __construct(DropboxClient $client, array $backendConfig)
     {
         $this->backendConfig = $backendConfig;
 
@@ -44,7 +45,7 @@ class Dropbox extends \League\Flysystem\Dropbox\DropboxAdapter
     }
 
     /**
-     * Returns a direct link to a file stored on Dropbox
+     * Returns a direct link to a file stored in Dropbox.
      *
      * @param string $path
      *
@@ -52,12 +53,66 @@ class Dropbox extends \League\Flysystem\Dropbox\DropboxAdapter
      */
     public function getFileUrl($path)
     {
-        $shareableLink = $this->client->createShareableLink($this->applyPathPrefix($path));
+        $fullPath = $this->applyPathPrefix($path);
 
-        if (substr($shareableLink, -5) === '?dl=0') {
-            $shareableLink[strlen($shareableLink)-1] = '1';
+        $parameters = [
+            'path' => '/'.trim($fullPath, '/')
+        ];
+
+        $sharedLinkUrl = null;
+
+        $response = $this->client->rpcEndpointRequest('sharing/list_shared_links', $parameters);
+
+        if (is_array($response) && isset($response['links']) && !empty($response['links'])) {
+            $linkInfo = current($response['links']);
+            $sharedLinkUrl = $linkInfo['url'];
+        } else {
+            $fileInfo = $this->client->createSharedLinkWithSettings($fullPath);
+
+            if (!isset($fileInfo['url'])) {
+                return null;
+            }
+
+            $sharedLinkUrl = $fileInfo['url'];
         }
 
-        return $shareableLink;
+        if (substr($sharedLinkUrl, -5) === '?dl=0') {
+            $sharedLinkUrl[strlen($sharedLinkUrl)-1] = '1';
+        }
+
+        return $sharedLinkUrl;
+    }
+
+    /**
+     * Returns the file MIME type.
+     *
+     * The Dropbox API v2 does not support mimetypes, but it's required
+     * by some connector features, so this method tries to guess one using
+     * file extension.
+     *
+     * @param string $path
+     *
+     * @return array|false|null|string
+     */
+    public function getMimeType($path)
+    {
+        $ext = pathinfo($path, PATHINFO_EXTENSION);
+
+        $mimeType = MimeType::detectByFileExtension(strtolower($ext));
+
+        return array('mimetype' => $mimeType ? $mimeType : 'application/octet-stream');
+    }
+
+    /**
+     * Returns file metadata, including guessed mimetype.
+     *
+     * @param string $path
+     * @return array
+     */
+    public function getMetadata($path)
+    {
+        $metadata = parent::getMetadata($path);
+
+        return array_merge($metadata, $this->getMimeType($path));
     }
 }

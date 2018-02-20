@@ -4,7 +4,7 @@
  * CKFinder
  * ========
  * http://cksource.com/ckfinder
- * Copyright (C) 2007-2015, CKSource - Frederico Knabben. All rights reserved.
+ * Copyright (C) 2007-2016, CKSource - Frederico Knabben. All rights reserved.
  *
  * The software, this file and its contents are subject to the CKFinder
  * License. Please read the license.txt file before using, installing, copying,
@@ -22,45 +22,44 @@ use CKSource\CKFinder\Image;
 use CKSource\CKFinder\ResourceType\ResourceType;
 
 /**
- * Class ExistingFile
+ * The ExistingFile class.
  *
- * Represents file that already exists in CKFinder and can be
- * pointed using resource type, path and file name
+ * Represents a file that already exists in CKFinder and can be
+ * pointed using the resource type, path and file name.
  *
  */
 abstract class ExistingFile extends File
 {
-
     /**
-     * File resource type
+     * File resource type.
      *
      * @var ResourceType $resourceType
      */
     protected $resourceType;
 
     /**
-     * Resource type relative folder
+     * Resource type relative folder.
      *
      * @var string $folder
      */
     protected $folder;
 
     /**
-     * Array for errors that may occur during file processing
+     * Array for errors that may occur during file processing.
      *
      * @var array $errors
      */
     protected $errors = array();
 
     /**
-     * File metadata
+     * File metadata.
      *
      * @var array
      */
     protected $metadata;
 
     /**
-     * Constructor
+     * Constructor.
      *
      * @param string       $fileName
      * @param string       $folder
@@ -76,9 +75,9 @@ abstract class ExistingFile extends File
     }
 
     /**
-     * Returns backend relative folder path (i.e. path with prepended resource type directory)
+     * Returns backend-relative folder path (i.e. a path with a prepended resource type directory).
      *
-     * @return string backend relative path
+     * @return string backend-relative path
      */
     public function getPath()
     {
@@ -86,19 +85,19 @@ abstract class ExistingFile extends File
     }
 
     /**
-     * Returns backend relative file path
+     * Returns backend-relative file path.
      *
      * @return string file path
      */
     public function getFilePath()
     {
-        return Path::combine($this->getPath(), $this->fileName);
+        return Path::combine($this->getPath(), $this->getFilename());
     }
 
     /**
-     * Checks if current file folder path is valid
+     * Checks if the current file folder path is valid.
      *
-     * @return bool true if path is valid
+     * @return bool `true` if the path is valid.
      */
     public function hasValidPath()
     {
@@ -106,13 +105,23 @@ abstract class ExistingFile extends File
     }
 
     /**
-     * Checks if current file has extension allowed in its resource type
+     * Returns the resource type of the file.
      *
-     * @return bool true if file has allowed exception
+     * @return ResourceType
+     */
+    public function getResourceType()
+    {
+        return $this->resourceType;
+    }
+
+    /**
+     * Checks if the current file has an extension allowed in its resource type.
+     *
+     * @return bool `true` if the file has an allowed exception.
      */
     public function hasAllowedExtension()
     {
-        if (strpos($this->fileName, '.') === false) {
+        if (strpos($this->getFilename(), '.') === false) {
             return true;
         }
 
@@ -122,19 +131,19 @@ abstract class ExistingFile extends File
     }
 
     /**
-     * Checks if current file is hidden
+     * Checks if the current file is hidden.
      *
-     * @return bool true if file is hidden
+     * @return bool `true` if the file is hidden.
      */
     public function isHidden()
     {
-        return $this->resourceType->getBackend()->isHiddenFile($this->fileName);
+        return $this->resourceType->getBackend()->isHiddenFile($this->getFilename());
     }
 
     /**
-     * Checks if current file has hidden path (i.e. if any of the parents folders is hidden)
+     * Checks if the current file has a hidden path (i.e. if any of the parent folders is hidden).
      *
-     * @return bool true if path is hidden
+     * @return bool `true` if the path is hidden.
      */
     public function hasHiddenPath()
     {
@@ -142,9 +151,9 @@ abstract class ExistingFile extends File
     }
 
     /**
-     * Checks if current file exists
+     * Checks if the current file exists.
      *
-     * @return bool true if file exists
+     * @return bool `true` if the file exists.
      */
     public function exists()
     {
@@ -161,7 +170,7 @@ abstract class ExistingFile extends File
     }
 
     /**
-     * Returns file contents stream
+     * Returns file contents stream.
      *
      * @return resource contents stream
      */
@@ -173,7 +182,7 @@ abstract class ExistingFile extends File
     }
 
     /**
-     * Returns file contents
+     * Returns file contents.
      *
      * @return resource contents stream
      */
@@ -185,16 +194,16 @@ abstract class ExistingFile extends File
     }
 
     /**
-     * Sets new file contents
+     * Sets new file contents.
      *
-     * @param string $contents file content
-     * @param string $filePath  path to save the file
+     * @param string $contents file contents
+     * @param string $filePath path to save the file
      *
-     * @return bool true if saved successfully
+     * @return bool `true` if saved successfully.
      *
-     * @throws \Exception if content size is too big
+     * @throws \Exception if content size is too big.
      */
-    public function setContents($contents, $filePath = null)
+    public function save($contents, $filePath = null)
     {
         $filePath = $filePath ?: $this->getFilePath();
 
@@ -216,7 +225,7 @@ abstract class ExistingFile extends File
     }
 
     /**
-     * Adds an error to array of errors of current file
+     * Adds an error to the array of errors of the current file.
      *
      * @param int $number error number
      *
@@ -233,7 +242,7 @@ abstract class ExistingFile extends File
     }
 
     /**
-     * Returns an array of errors that occurred during file processing
+     * Returns an array of errors that occurred during file processing.
      *
      * @return array
      */
@@ -243,9 +252,9 @@ abstract class ExistingFile extends File
     }
 
     /**
-     * Removes thumbnail generated for current file
+     * Removes the thumbnail generated for the current file.
      *
-     * @return true if thumbnail was found and deleted
+     * @return `true` if the thumbnail was found and deleted.
      */
     public function deleteThumbnails()
     {
@@ -254,16 +263,16 @@ abstract class ExistingFile extends File
         if (Image::isSupportedExtension($extension) || ($extension === 'bmp' && $this->config->get('thumbnails.bmpSupported'))) {
             $thumbsRepository = $this->resourceType->getThumbnailRepository();
 
-            return $thumbsRepository->deleteThumbnails($this->resourceType, $this->folder, $this->fileName);
+            return $thumbsRepository->deleteThumbnails($this->resourceType, $this->folder, $this->getFilename());
         }
 
         return false;
     }
 
     /**
-     * Removes thumbnail generated for current file
+     * Removes resized images generated for the current file.
      *
-     * @return true if thumbnail was found and deleted
+     * @return `true` if resized images were found and deleted.
      */
     public function deleteResizedImages()
     {
@@ -272,16 +281,16 @@ abstract class ExistingFile extends File
         if (Image::isSupportedExtension($extension)) {
             $resizedImageRepository = $this->resourceType->getResizedImageRepository();
 
-            return $resizedImageRepository->deleteResizedImages($this->resourceType, $this->folder, $this->fileName);
+            return $resizedImageRepository->deleteResizedImages($this->resourceType, $this->folder, $this->getFilename());
         }
 
         return false;
     }
 
     /**
-     * Returns last modification time
+     * Returns last modification time.
      *
-     * @return int unix timestamp
+     * @return int Unix timestamp
      */
     public function getTimestamp()
     {
@@ -290,10 +299,23 @@ abstract class ExistingFile extends File
         return $metadata['timestamp'];
     }
 
+
     /**
-     * Returns file size
+     * Returns file MIME type.
      *
-     * @return int size in bytes
+     * @return string file MIME type.
+     */
+    public function getMimeType()
+    {
+        $metadata = $this->getMetadata();
+
+        return $metadata['mimetype'];
+    }
+
+    /**
+     * Returns file size.
+     *
+     * @return int size in bytes.
      */
     public function getSize()
     {
@@ -303,7 +325,7 @@ abstract class ExistingFile extends File
     }
 
     /**
-     * Returns file metadata
+     * Returns file metadata.
      *
      * @return array
      */

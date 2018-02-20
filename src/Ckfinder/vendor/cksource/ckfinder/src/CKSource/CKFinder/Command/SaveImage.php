@@ -1,15 +1,31 @@
 <?php
 
+/*
+ * CKFinder
+ * ========
+ * http://cksource.com/ckfinder
+ * Copyright (C) 2007-2016, CKSource - Frederico Knabben. All rights reserved.
+ *
+ * The software, this file and its contents are subject to the CKFinder
+ * License. Please read the license.txt file before using, installing, copying,
+ * modifying or distribute this file or part of its contents. The contents of
+ * this file is part of the Source Code of CKFinder.
+ */
+
 namespace CKSource\CKFinder\Command;
 
-
+use CKSource\CKFinder\Acl\Acl;
+use CKSource\CKFinder\Acl\Permission;
 use CKSource\CKFinder\Cache\CacheManager;
+use CKSource\CKFinder\Config;
+use CKSource\CKFinder\Error;
 use CKSource\CKFinder\Event\CKFinderEvent;
 use CKSource\CKFinder\Event\EditFileEvent;
-use CKSource\CKFinder\Exception\CKFinderException;
+use CKSource\CKFinder\Exception\AccessDeniedException;
 use CKSource\CKFinder\Exception\InvalidExtensionException;
 use CKSource\CKFinder\Exception\InvalidUploadException;
-use CKSource\CKFinder\Filesystem\File\EditedFile;
+use CKSource\CKFinder\Exception\UnauthorizedException;
+use CKSource\CKFinder\Filesystem\File\EditedImage;
 use CKSource\CKFinder\Filesystem\Path;
 use CKSource\CKFinder\Image;
 use CKSource\CKFinder\Filesystem\Folder\WorkingFolder;
@@ -21,30 +37,38 @@ use Symfony\Component\HttpFoundation\Request;
 
 class SaveImage extends CommandAbstract
 {
-    public function execute(Request $request, WorkingFolder $workingFolder, EventDispatcher $dispatcher, CacheManager $cache, ResizedImageRepository $resizedImageRepository, ThumbnailRepository $thumbnailRepository)
-    {
-        $fileName = $request->query->get('fileName');
+    protected $requestMethod = Request::METHOD_POST;
 
-        $editedFile = new EditedFile($fileName, $this->app);
+    protected $requires = array(Permission::FILE_CREATE);
+
+    public function execute(Request $request, WorkingFolder $workingFolder, EventDispatcher $dispatcher, CacheManager $cache, ResizedImageRepository $resizedImageRepository, ThumbnailRepository $thumbnailRepository, Acl $acl, Config $config)
+    {
+        $fileName = (string) $request->query->get('fileName');
+
+        $editedImage = new EditedImage($fileName, $this->app);
 
         $saveAsNew = false;
 
-        if (!$editedFile->exists()) {
+        if (!$editedImage->exists()) {
             $saveAsNew = true;
-            $editedFile->saveAsNew(true);
+            $editedImage->saveAsNew(true);
+        } else {
+            // If file exists check for FILE_DELETE permission
+            $resourceTypeName = $workingFolder->getResourceType()->getName();
+            $path = $workingFolder->getClientCurrentFolder();
+
+            if (!$acl->isAllowed($resourceTypeName, $path, Permission::FILE_DELETE)) {
+                throw new UnauthorizedException(sprintf('Unauthorized: no FILE_DELETE permission in %s:%s', $resourceTypeName, $path));
+            }
         }
 
-        if (!$editedFile->isValid()) {
-            throw new InvalidUploadException('Invalid file provided');
-        }
-
-        if (!Image::isSupportedExtension($editedFile->getExtension())) {
+        if (!Image::isSupportedExtension($editedImage->getExtension())) {
             throw new InvalidExtensionException('Unsupported image type or not image file');
         }
 
-        $imageFormat = Image::mimeTypeFromExtension($editedFile->getExtension());
+        $imageFormat = Image::mimeTypeFromExtension($editedImage->getExtension());
 
-        $uploadedData = $request->get('content');
+        $uploadedData = (string) $request->request->get('content');
 
         if (null === $uploadedData || strpos($uploadedData, 'data:image/png;base64,') !== 0) {
             throw new InvalidUploadException('Invalid upload. Expected base64 encoded PNG image.');
@@ -57,11 +81,30 @@ class SaveImage extends CommandAbstract
             throw new InvalidUploadException();
         }
 
-        $uploadedImage = Image::create($data);
+        try {
+            $uploadedImage = Image::create($data);
+        } catch (\Exception $e) {
+            // No need to check if secureImageUploads is enabled - image must be valid here
+            throw new InvalidUploadException('Invalid upload: corrupted image', Error::UPLOADED_CORRUPT, array(), $e);
+        }
 
-        $newContents = $uploadedImage->getData($imageFormat);
+        $imagesConfig = $config->get('images');
 
-        $editFileEvent = new EditFileEvent($this->app, $editedFile, $newContents);
+        if ($imagesConfig['maxWidth'] && $uploadedImage->getWidth() > $imagesConfig['maxWidth'] ||
+            $imagesConfig['maxHeight'] && $uploadedImage->getHeight() > $imagesConfig['maxHeight']) {
+            $uploadedImage->resize($imagesConfig['maxWidth'], $imagesConfig['maxHeight'], $imagesConfig['quality']);
+        }
+
+        $editedImage->setNewContents($uploadedImage->getData($imageFormat));
+        $editedImage->setNewDimensions($uploadedImage->getWidth(), $uploadedImage->getHeight());
+
+        if (!$editedImage->isValid()) {
+            throw new InvalidUploadException('Invalid file provided');
+        }
+
+        $editFileEvent = new EditFileEvent($this->app, $editedImage);
+
+        $imageInfo = $uploadedImage->getInfo();
 
         $cache->set(
             Path::combine(
@@ -76,7 +119,11 @@ class SaveImage extends CommandAbstract
         $saved = false;
 
         if (!$editFileEvent->isPropagationStopped()) {
-            $saved = $editedFile->setContents($editFileEvent->getNewContents());
+            $saved = $editedImage->save($editFileEvent->getNewContents());
+
+            if (!$saved) {
+                throw new AccessDeniedException("Couldn't save image file");
+            }
 
             //Remove thumbnails and resized images in case if file is overwritten
             if (!$saveAsNew && $saved) {
@@ -88,7 +135,8 @@ class SaveImage extends CommandAbstract
 
         return array(
             'saved' => (int) $saved,
-            'date'  => Utils::formatDate(time())
+            'date'  => Utils::formatDate(time()),
+            'size'  => Utils::formatSize($imageInfo['size'])
         );
     }
 }

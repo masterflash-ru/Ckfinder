@@ -4,7 +4,7 @@
  * CKFinder
  * ========
  * http://cksource.com/ckfinder
- * Copyright (C) 2007-2015, CKSource - Frederico Knabben. All rights reserved.
+ * Copyright (C) 2007-2016, CKSource - Frederico Knabben. All rights reserved.
  *
  * The software, this file and its contents are subject to the CKFinder
  * License. Please read the license.txt file before using, installing, copying,
@@ -13,6 +13,7 @@
  */
 
 namespace CKSource\CKFinder\Thumbnail;
+
 use CKSource\CKFinder\Backend\Backend;
 use CKSource\CKFinder\CKFinder;
 use CKSource\CKFinder\Config;
@@ -22,11 +23,11 @@ use CKSource\CKFinder\Filesystem\Path;
 use CKSource\CKFinder\ResourceType\ResourceType;
 
 /**
- * ThumbnailRepository class
+ * The ThumbnailRepository class.
  *
- * Class responsible for thumbnails management
+ * A class responsible for thumbnail management.
  *
- * @copyright 2015 CKSource - Frederico Knabben
+ * @copyright 2016 CKSource - Frederico Knabben
  */
 class ThumbnailRepository
 {
@@ -41,21 +42,21 @@ class ThumbnailRepository
     protected $config;
 
     /**
-     * Backend where thumbnails are stored
+     * The Backend where thumbnails are stored.
      *
      * @var Backend $thumbsBackend
      */
     protected $thumbsBackend;
 
     /**
-     * Event dispatcher
+     * Event dispatcher.
      *
      * @var $dispatcher
      */
     protected $dispatcher;
 
     /**
-     * Constructor
+     * Constructor.
      *
      * @param CKFinder $app
      */
@@ -68,7 +69,7 @@ class ThumbnailRepository
     }
 
     /**
-     * Returns the Backend object where thumbnails are stored
+     * Returns the Backend object where thumbnails are stored.
      *
      * @return Backend
      */
@@ -87,7 +88,7 @@ class ThumbnailRepository
 
     /**
      * Returns backend-relative directory path where
-     * thumbnails are stored
+     * thumbnails are stored.
      *
      * @return string
      */
@@ -97,7 +98,7 @@ class ThumbnailRepository
     }
 
     /**
-     * Returns an array of allowed sizes for thumbnails
+     * Returns an array of allowed sizes for thumbnails.
      *
      * @return array
      */
@@ -107,10 +108,10 @@ class ThumbnailRepository
     }
 
     /**
-     * Returns info about bitmap support for thumbnails. If bitmaps
-     * support is disabled thumbnails for bitmaps won't be generated.
+     * Returns information about bitmap support for thumbnails. If bitmap
+     * support is disabled, thumbnails for bitmaps will not be generated.
      *
-     * @return bool true if bitmap support is enabled
+     * @return bool `true` if bitmap support is enabled.
      */
     public function isBitmapSupportEnabled()
     {
@@ -118,10 +119,10 @@ class ThumbnailRepository
     }
 
     /**
-     * Returns a thumbnail object for given file defined by resource type,
+     * Returns a thumbnail object for a given file defined by the resource type,
      * path and file name.
-     * The real size of the thumbnail image will be adjusted to one of sizes
-     * allowed by thumbnail configuration.
+     * The real size of the thumbnail image will be adjusted to one of the sizes
+     * allowed by the thumbnail configuration.
      *
      * @param ResourceType $resourceType    source file resource type
      * @param string       $path            source file directory path
@@ -155,14 +156,14 @@ class ThumbnailRepository
     }
 
     /**
-     * Deletes all thumbnails under given path defined by resource type,
-     * path and file name
+     * Deletes all thumbnails under the given path defined by the resource type,
+     * path and file name.
      *
      * @param ResourceType $resourceType
      * @param string       $path
      * @param string       $fileName
      *
-     * @return bool true if deleted successfully
+     * @return bool `true` if deleted successfully
      */
     public function deleteThumbnails(ResourceType $resourceType, $path, $fileName = null)
     {

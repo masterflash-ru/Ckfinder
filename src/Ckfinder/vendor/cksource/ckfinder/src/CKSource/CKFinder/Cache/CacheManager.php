@@ -4,7 +4,7 @@
  * CKFinder
  * ========
  * http://cksource.com/ckfinder
- * Copyright (C) 2007-2015, CKSource - Frederico Knabben. All rights reserved.
+ * Copyright (C) 2007-2016, CKSource - Frederico Knabben. All rights reserved.
  *
  * The software, this file and its contents are subject to the CKFinder
  * License. Please read the license.txt file before using, installing, copying,
@@ -17,7 +17,7 @@ namespace CKSource\CKFinder\Cache;
 use CKSource\CKFinder\Cache\Adapter\AdapterInterface;
 
 /**
- * Class CacheManager
+ * The CacheManager class.
  */
 class CacheManager
 {
@@ -27,6 +27,8 @@ class CacheManager
     protected $adapter;
 
     /**
+     * Constructor.
+     *
      * @param AdapterInterface $adapter
      */
     public function __construct(AdapterInterface $adapter)
@@ -35,12 +37,12 @@ class CacheManager
     }
 
     /**
-     * Sets the value in cache under given key
+     * Sets the value in cache for a given key.
      *
      * @param string $key
      * @param mixed  $value
      *
-     * @return bool true if successful
+     * @return bool `true` if successful.
      */
     public function set($key, $value)
     {
@@ -48,7 +50,7 @@ class CacheManager
     }
 
     /**
-     * Returns value under given key from cache
+     * Returns the value for a given key from cache.
      *
      * @param string $key
      *
@@ -60,11 +62,11 @@ class CacheManager
     }
 
     /**
-     * Deletes value under given key from cache
+     * Deletes the value under a given key from cache.
      *
      * @param string $key
      *
-     * @return bool true if successful
+     * @return bool `true` if successful.
      */
     public function delete($key)
     {
@@ -72,12 +74,12 @@ class CacheManager
     }
 
     /**
-     * Copies value under given key to another key
+     * Copies the value for a given key to another key.
      *
      * @param string $sourceKey
      * @param string $targetKey
      *
-     * @return bool true if successful
+     * @return bool `true` if successful.
      */
     public function copy($sourceKey, $targetKey)
     {
@@ -91,12 +93,12 @@ class CacheManager
     }
 
     /**
-     * Moves value under given key to another key
+     * Moves the value for a given key to another key.
      *
      * @param string $sourceKey
      * @param string $targetKey
      *
-     * @return bool true if successful
+     * @return bool `true` if successful.
      */
     public function move($sourceKey, $targetKey)
     {
@@ -104,11 +106,11 @@ class CacheManager
     }
 
     /**
-     * Deletes all cache entries with given key prefix
+     * Deletes all cache entries with a given key prefix.
      *
      * @param string $keyPrefix
      *
-     * @return bool true if successful
+     * @return bool `true` if successful.
      */
     public function deleteByPrefix($keyPrefix)
     {
@@ -116,12 +118,12 @@ class CacheManager
     }
 
     /**
-     * Changes prefix for all entries given key prefix
+     * Changes the prefix for all entries given a key prefix.
      *
      * @param string $sourcePrefix
      * @param string $targetPrefix
      *
-     * @return bool true if successful
+     * @return bool `true` if successful.
      */
     public function changePrefix($sourcePrefix, $targetPrefix)
     {

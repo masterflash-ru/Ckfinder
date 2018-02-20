@@ -4,7 +4,7 @@
  * CKFinder
  * ========
  * http://cksource.com/ckfinder
- * Copyright (C) 2007-2015, CKSource - Frederico Knabben. All rights reserved.
+ * Copyright (C) 2007-2016, CKSource - Frederico Knabben. All rights reserved.
  *
  * The software, this file and its contents are subject to the CKFinder
  * License. Please read the license.txt file before using, installing, copying,
@@ -18,34 +18,34 @@ use CKSource\CKFinder\Exception\InvalidConfigException;
 use CKSource\CKFinder\Exception\InvalidResourceTypeException;
 
 /**
- * Config class
+ * The Config class.
  *
- * Contains all configuration options and a set of config helpers methods
+ * Contains all configuration options and a set of config helper methods.
  *
- * @copyright 2015 CKSource - Frederico Knabben
+ * @copyright 2016 CKSource - Frederico Knabben
  */
 class Config
 {
     /**
-     * An array containing configuration options
+     * An array containing configuration options.
      *
      * @var array $options
      */
     protected $options;
 
     /**
-     * Constructor
+     * Constructor.
      *
-     * Depending on type of the parameter passed to this function
-     * config array is used directly or it's loaded from a file.
+     * Depending on the type of the parameter passed to this function,
+     * config array is used directly or it is loaded from a file.
      *
-     * <b>Important</b>: if you use PHP file to store your config remember to use
-     *                   <code>return</code> statement inside file scope to return
+     * <b>Important</b>: If you use a PHP file to store your config, remember to use
+     *                   the <code>return</code> statement inside the file scope to return
      *                   the array.
      *
      * @param array|string $config
      *
-     * @throws InvalidConfigException if config wasn't loaded properly
+     * @throws InvalidConfigException if config was not loaded properly.
      */
     public function __construct($config)
     {
@@ -75,7 +75,7 @@ class Config
     }
 
     /**
-     * Merges default or missing configuration options
+     * Merges default or missing configuration options.
      *
      * @param array $options options passed to CKFinder
      *
@@ -84,7 +84,7 @@ class Config
     protected function mergeDefaultOptions($options)
     {
         $defaults = array(
-            'authentication' => function() {
+            'authentication' => function () {
                 return false;
             },
             'licenseName' => '',
@@ -94,7 +94,7 @@ class Config
                 'tags'    => '.ckfinder/tags',
                 'logs'    => '.ckfinder/logs',
                 'cache'   => '.ckfinder/cache',
-                'thumbs'  => '.ckfinder/cache/thumbs',
+                'thumbs'  => '.ckfinder/cache/thumbs'
             ),
             'images' => array(
                 'maxWidth'  => 500,
@@ -158,7 +158,7 @@ class Config
                     'FOLDER_DELETE'      => true,
 
                     'FILE_VIEW'          => true,
-                    'FILE_UPLOAD'        => true,
+                    'FILE_CREATE'        => true,
                     'FILE_RENAME'        => true,
                     'FILE_DELETE'        => true,
 
@@ -179,11 +179,11 @@ class Config
             'debug'                    => false,
             'pluginsDirectory'         => __DIR__ . '/plugins',
             'plugins'                  => array(),
-            'debug_loggers'            => array('ckfinder_log', 'error_log', 'firephp'),
-            'cache'                    => array(
-                'imagePreview' => 24 * 3600,
-                'thumbnails'   => 24 * 3600 * 365
-            )
+            'debugLoggers'            => array('ckfinder_log', 'error_log', 'firephp'),
+            'tempDirectory' => sys_get_temp_dir(),
+            'sessionWriteClose' => true,
+            'csrfProtection' => true,
+            'headers' => array()
         );
 
         $options = array_merge($defaults, $options);
@@ -205,14 +205,39 @@ class Config
             $resourceType = array_merge($resourceTypeDefaults, $resourceType);
         }
 
+        $localBackendDefaults = array(
+            'chmodFiles'   => 0755,
+            'chmodFolders' => 0755,
+            'filesystemEncoding' => 'UTF-8'
+        );
+
+        foreach ($options['backends'] as &$backend) {
+            if ($backend['adapter'] === 'local') {
+                $backend = array_merge($localBackendDefaults, $backend);
+            }
+        }
+
+        $cacheDefaults = array(
+            'imagePreview' => 24 * 3600,
+            'thumbnails'   => 24 * 3600 * 365,
+            'proxyCommand' => 0
+        );
+
+        $options['cache'] = array_replace($cacheDefaults, isset($options['cache']) ? $options['cache'] : array());
+
+        // #205 Backward compatibility for old debug_loggers option
+        if (isset($options['debug_loggers'])) {
+            $options['debugLoggers'] = $options['debug_loggers'];
+        }
+
         return $options;
     }
 
     /**
-     * Returns configuration node under path defined in parameter.
+     * Returns the configuration node under the path defined in the parameter.
      *
-     * For easier access to nested config options the config $name
-     * parameter can be passed also as a dot separated path.
+     * For easier access to nested configuration options the config `$name`
+     * parameter can be passed also as a dot-separated path.
      * For example, to check if thumbnails are enabled you can use:
      *
      * $config->get('thumbnails.enabled')
@@ -252,9 +277,9 @@ class Config
     }
 
     /**
-     * Validates config array structure
+     * Validates the config array structure.
      *
-     * @throws InvalidConfigException if config structure is invalid
+     * @throws InvalidConfigException if config structure is invalid.
      */
     protected function validate()
     {
@@ -301,10 +326,14 @@ class Config
         if (!is_callable($this->options['authentication'])) {
             throw new InvalidConfigException("CKFinder Authentication config field must be a PHP callable");
         }
+
+        if (!is_writable($this->options['tempDirectory'])) {
+            throw new InvalidConfigException("The temporary folder is not writable for CKFinder");
+        }
     }
 
     /**
-     * Processes configuration array
+     * Processes the configuration array.
      */
     protected function process()
     {
@@ -327,20 +356,31 @@ class Config
                     'strlen');
         };
 
-        foreach ($this->options['resourceTypes'] as $i => $resourceTypeConfig) {
+        foreach ($this->options['resourceTypes'] as $resourceTypeKey => $resourceTypeConfig) {
             $resourceTypeConfig['allowedExtensions'] = $formatToArray($resourceTypeConfig['allowedExtensions']);
             $resourceTypeConfig['deniedExtensions'] = $formatToArray($resourceTypeConfig['deniedExtensions']);
             $resourceTypeConfig['maxSize'] = Utils::returnBytes((string) $resourceTypeConfig['maxSize']);
 
             $this->options['resourceTypes'][$resourceTypeConfig['name']] = $resourceTypeConfig;
-            unset($this->options['resourceTypes'][$i]);
+
+            if ($resourceTypeKey !== $resourceTypeConfig['name']) {
+                unset($this->options['resourceTypes'][$resourceTypeKey]);
+            }
+        }
+
+        foreach ($this->options['backends'] as $backendKey => $backendConfig) {
+            $this->options['backends'][$backendConfig['name']] = $backendConfig;
+
+            if ($backendKey !== $backendConfig['name']) {
+                unset($this->options['backends'][$backendKey]);
+            }
         }
 
         $this->options['htmlExtensions'] = $formatToArray($this->options['htmlExtensions']);
     }
 
     /**
-     * Returns default resources types names
+     * Returns the default resource types names.
      *
      * @return array
      */
@@ -350,7 +390,7 @@ class Config
     }
 
     /**
-     * Returns all defined resources types names
+     * Returns all defined resource types names.
      *
      * @return array
      */
@@ -360,13 +400,13 @@ class Config
     }
 
     /**
-     * Returns configuration node for chosen resource type
+     * Returns the configuration node for a given resource type.
      *
      * @param string $resourceType resource type name
      *
-     * @return array configuration node for resource type
+     * @return array configuration node for the resource type
      *
-     * @throws InvalidResourceTypeException if resource type doesn't exist
+     * @throws InvalidResourceTypeException if the resource type does not exist
      */
     public function getResourceTypeNode($resourceType)
     {
@@ -378,7 +418,7 @@ class Config
     }
 
     /**
-     * Returns regex used for hidden files check
+     * Returns the regex used for hidden files check.
      * @return string
      */
     public function getHideFilesRegex()
@@ -403,7 +443,7 @@ class Config
     }
 
     /**
-     * Returns regex used for hidden files check
+     * Returns the regex used for hidden folders check.
      * @return string
      */
     public function getHideFoldersRegex()
@@ -428,8 +468,8 @@ class Config
     }
 
     /**
-     * If config node doesn't exist creates node with given name and values.
-     * In other case extends config node with additional (default) values
+     * If the config node does not exist, creates the node with a given name and values.
+     * Otherwise extends the config node with additional (default) values.
      *
      * @param string $nodeName
      * @param array  $values
@@ -444,7 +484,7 @@ class Config
     }
 
     /**
-     * Returns backend-relative private directory path
+     * Returns the backend-relative private directory path.
      *
      * @param string $privateDirIdentifier
      *
@@ -466,13 +506,31 @@ class Config
     }
 
     /**
-     * Checks if debug logger with given name is enabled
+     * Checks if the debug logger with a given name is enabled.
      * @param string $loggerName debug logger name
      *
-     * @return bool true if enabled
+     * @return bool `true` if enabled
      */
     public function isDebugLoggerEnabled($loggerName)
     {
-        return in_array($loggerName, $this->options['debug_loggers']);
+        return in_array($loggerName, $this->options['debugLoggers']);
+    }
+
+    /**
+     * Returns backend configuration by name.
+     *
+     * @param string $backendName
+     *
+     * @return array backend configuration node
+     *
+     * @throws \InvalidArgumentException
+     */
+    public function getBackendNode($backendName)
+    {
+        if (array_key_exists($backendName, $this->options['backends'])) {
+            return $this->options['backends'][$backendName];
+        } else {
+            throw new \InvalidArgumentException(sprintf('Backend %s not found. Please check configuration file.', $backendName));
+        }
     }
 }

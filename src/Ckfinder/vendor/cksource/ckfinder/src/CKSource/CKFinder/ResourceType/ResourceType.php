@@ -1,5 +1,17 @@
 <?php
 
+/*
+ * CKFinder
+ * ========
+ * http://cksource.com/ckfinder
+ * Copyright (C) 2007-2016, CKSource - Frederico Knabben. All rights reserved.
+ *
+ * The software, this file and its contents are subject to the CKFinder
+ * License. Please read the license.txt file before using, installing, copying,
+ * modifying or distribute this file or part of its contents. The contents of
+ * this file is part of the Source Code of CKFinder.
+ */
+
 namespace CKSource\CKFinder\ResourceType;
 
 use CKSource\CKFinder\Backend\Backend;
@@ -83,14 +95,14 @@ class ResourceType
 
         if (!empty($allowed) && !in_array($extension, $allowed) ||
             !empty($denied) && in_array($extension, $denied)) {
-                return false;
+            return false;
         }
 
         return true;
     }
 
     /**
-     * Returns resource type hash
+     * Returns the resource type hash.
      *
      * @return string hash string
      */

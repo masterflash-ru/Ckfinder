@@ -1,7 +1,18 @@
 <?php
 
-namespace CKSource\CKFinder\Command;
+/*
+ * CKFinder
+ * ========
+ * http://cksource.com/ckfinder
+ * Copyright (C) 2007-2016, CKSource - Frederico Knabben. All rights reserved.
+ *
+ * The software, this file and its contents are subject to the CKFinder
+ * License. Please read the license.txt file before using, installing, copying,
+ * modifying or distribute this file or part of its contents. The contents of
+ * this file is part of the Source Code of CKFinder.
+ */
 
+namespace CKSource\CKFinder\Command;
 
 use CKSource\CKFinder\Acl\Permission;
 use CKSource\CKFinder\Filesystem\Folder\WorkingFolder;
@@ -19,22 +30,17 @@ class GetFiles extends CommandAbstract
         $data->files = array();
 
         foreach ($files as $file) {
-
-            $size = $file['size'];
-
-            $size = ($size && $size < 1024) ? 1 : (int) round($size / 1024);
-
             $fileObject = array(
                 'name' => $file['basename'],
                 'date' => Utils::formatDate($file['timestamp']),
-                'size' => $size
+                'size' => Utils::formatSize($file['size'])
             );
 
             $data->files[] = $fileObject;
         }
 
         // Sort files
-        usort($data->files, function($a, $b) {
+        usort($data->files, function ($a, $b) {
             return strnatcasecmp($a['name'], $b['name']);
         });
 

@@ -4,7 +4,7 @@
  * CKFinder
  * ========
  * http://cksource.com/ckfinder
- * Copyright (C) 2007-2015, CKSource - Frederico Knabben. All rights reserved.
+ * Copyright (C) 2007-2016, CKSource - Frederico Knabben. All rights reserved.
  *
  * The software, this file and its contents are subject to the CKFinder
  * License. Please read the license.txt file before using, installing, copying,
@@ -18,7 +18,7 @@ use CKSource\CKFinder\CKFinder;
 use CKSource\CKFinder\ResizedImage\ResizedImageAbstract;
 
 /**
- * ResizeImageEvent class
+ * The ResizeImageEvent class.
  */
 class ResizeImageEvent extends CKFinderEvent
 {
@@ -39,6 +39,8 @@ class ResizeImageEvent extends CKFinderEvent
     }
 
     /**
+     * Returns the resized image object.
+     *
      * @return ResizedImageAbstract
      */
     public function getResizedImage()
@@ -47,6 +49,8 @@ class ResizeImageEvent extends CKFinderEvent
     }
 
     /**
+     * Sets the resized image object.
+     *
      * @param ResizedImageAbstract $resizedImage
      */
     public function setResizedImage(ResizedImageAbstract $resizedImage)

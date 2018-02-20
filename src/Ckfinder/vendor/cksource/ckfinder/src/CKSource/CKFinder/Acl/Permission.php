@@ -4,7 +4,7 @@
  * CKFinder
  * ========
  * http://cksource.com/ckfinder
- * Copyright (C) 2007-2015, CKSource - Frederico Knabben. All rights reserved.
+ * Copyright (C) 2007-2016, CKSource - Frederico Knabben. All rights reserved.
  *
  * The software, this file and its contents are subject to the CKFinder
  * License. Please read the license.txt file before using, installing, copying,
@@ -15,9 +15,9 @@
 namespace CKSource\CKFinder\Acl;
 
 /**
- * Permission class
- * 
- * @copyright 2015 CKSource - Frederico Knabben
+ * The Permission class.
+ *
+ * @copyright 2016 CKSource - Frederico Knabben
  */
 class Permission
 {
@@ -27,18 +27,22 @@ class Permission
     const FOLDER_DELETE       = 8;
 
     const FILE_VIEW           = 16;
-    const FILE_UPLOAD         = 32;
+    const FILE_CREATE         = 32;
     const FILE_RENAME         = 64;
     const FILE_DELETE         = 128;
 
     const IMAGE_RESIZE        = 256;
     const IMAGE_RESIZE_CUSTOM = 512;
 
+    /**
+     * @deprecated Use FILE_CREATE instead.
+     */
+    const FILE_UPLOAD         = 32;
 
     /**
-     * Returns an array of all permissions defined in Permission class constants
-     * 
-     * @return array an array of permission constants in form
+     * Returns an array of all permissions defined in the Permission class constants.
+     *
+     * @return array an array of permission constants in the form of
      *               PERMISSION_NAME => value
      */
     public static function getAll()
@@ -49,13 +53,13 @@ class Permission
     }
 
     /**
-     * Returns numeric value for passed permission name
-     * 
+     * Returns a numeric value for the passed permission name.
+     *
      * @param string $name permission constant name
-     * 
+     *
      * @return int permission value
-     * 
-     * @throws \InvalidArgumentException when permission with given name wasn't found
+     *
+     * @throws \InvalidArgumentException when the permission with a given name was not found.
      */
     public static function byName($name)
     {

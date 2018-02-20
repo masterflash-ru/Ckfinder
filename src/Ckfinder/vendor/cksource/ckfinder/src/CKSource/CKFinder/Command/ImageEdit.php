@@ -4,7 +4,7 @@
  * CKFinder
  * ========
  * http://cksource.com/ckfinder
- * Copyright (C) 2007-2015, CKSource - Frederico Knabben. All rights reserved.
+ * Copyright (C) 2007-2016, CKSource - Frederico Knabben. All rights reserved.
  *
  * The software, this file and its contents are subject to the CKFinder
  * License. Please read the license.txt file before using, installing, copying,
@@ -16,12 +16,14 @@ namespace CKSource\CKFinder\Command;
 
 use CKSource\CKFinder\Acl\Acl;
 use CKSource\CKFinder\Acl\Permission;
+use CKSource\CKFinder\Config;
 use CKSource\CKFinder\Event\CKFinderEvent;
 use CKSource\CKFinder\Event\EditFileEvent;
 use CKSource\CKFinder\Exception\InvalidExtensionException;
 use CKSource\CKFinder\Exception\InvalidRequestException;
+use CKSource\CKFinder\Exception\InvalidUploadException;
 use CKSource\CKFinder\Exception\UnauthorizedException;
-use CKSource\CKFinder\Filesystem\File\EditedFile;
+use CKSource\CKFinder\Filesystem\File\EditedImage;
 use CKSource\CKFinder\Filesystem\Folder\WorkingFolder;
 use CKSource\CKFinder\Image;
 use CKSource\CKFinder\ResizedImage\ResizedImageRepository;
@@ -31,14 +33,14 @@ use Symfony\Component\EventDispatcher\EventDispatcher;
 use Symfony\Component\HttpFoundation\Request;
 
 /**
- * ImageEdit command class
+ * The ImageEdit command class.
  *
  * This command performs basic image modifications:
  * - crop
  * - rotate
  * - resize
  *
- * @copyright 2015 CKSource - Frederico Knabben
+ * @copyright 2016 CKSource - Frederico Knabben
  */
 class ImageEdit extends CommandAbstract
 {
@@ -46,44 +48,39 @@ class ImageEdit extends CommandAbstract
     const OPERATION_ROTATE = 'rotate';
     const OPERATION_RESIZE = 'resize';
 
-    protected $requires = array(Permission::FILE_VIEW);
+    protected $requestMethod = Request::METHOD_POST;
 
-    /**
-     * @param Request         $request
-     * @param WorkingFolder   $workingFolder
-     * @param EventDispatcher $dispatcher
-     * @param Acl             $acl
-     *
-     * @return array
-     *
-     * @throws \Exception
-     */
-    public function execute(Request $request, WorkingFolder $workingFolder, EventDispatcher $dispatcher, Acl $acl, ResizedImageRepository $resizedImageRepository, ThumbnailRepository $thumbnailRepository)
+    protected $requires = array(Permission::FILE_CREATE);
+
+    public function execute(Request $request, WorkingFolder $workingFolder, EventDispatcher $dispatcher, Acl $acl, ResizedImageRepository $resizedImageRepository, ThumbnailRepository $thumbnailRepository, Config $config)
     {
-        $fileName = $request->get('fileName');
-        $newFileName = $request->get('newFileName');
+        $fileName = (string) $request->get('fileName');
+        $newFileName = (string) $request->get('newFileName');
 
-        $editedFile = new EditedFile($fileName, $this->app, $newFileName);
-        $editedFile->isValid();
+        $editedImage = new EditedImage($fileName, $this->app, $newFileName);
 
         $resourceType = $workingFolder->getResourceType();
 
-        if ($newFileName) {
+        if (null === $newFileName) {
             $resourceTypeName = $resourceType->getName();
             $path = $workingFolder->getClientCurrentFolder();
 
-            if (!$acl->isAllowed($resourceTypeName, $path, Permission::FILE_UPLOAD)) {
-                throw new UnauthorizedException(sprintf('Unauthorized: no FILE_UPLOAD permission in %s:%s', $resourceTypeName, $path));
+            if (!$acl->isAllowed($resourceTypeName, $path, Permission::FILE_DELETE)) {
+                throw new UnauthorizedException(sprintf('Unauthorized: no FILE_DELETE permission in %s:%s', $resourceTypeName, $path));
             }
         }
 
-        if (!Image::isSupportedExtension($editedFile->getExtension())) {
+        if (!Image::isSupportedExtension($editedImage->getExtension())) {
             throw new InvalidExtensionException('Unsupported image type or not image file');
         }
 
-        $image = Image::create($editedFile->getContents());
+        $image = Image::create($editedImage->getContents());
 
         $actions = (array) $request->get('actions');
+
+        if (empty($actions)) {
+            throw new InvalidRequestException();
+        }
 
         foreach ($actions as $actionInfo) {
             if (!isset($actionInfo['action'])) {
@@ -115,23 +112,31 @@ class ImageEdit extends CommandAbstract
                     if (!Utils::arrayContainsKeys($actionInfo, array('width', 'height'))) {
                         throw new InvalidRequestException();
                     }
-                    $width = $actionInfo['width'];
-                    $height = $actionInfo['height'];
-                    $image->resize($width, $height);
+
+                    $imagesConfig = $config->get('images');
+
+                    $width = $imagesConfig['maxWidth'] && $actionInfo['width'] > $imagesConfig['maxWidth'] ? $imagesConfig['maxWidth'] : $actionInfo['width'];
+                    $height = $imagesConfig['maxHeight'] && $actionInfo['height'] > $imagesConfig['maxHeight'] ? $imagesConfig['maxHeight'] : $actionInfo['height'];
+                    $image->resize((int) $width, (int) $height, $imagesConfig['quality']);
                     break;
             }
         }
 
-        $newContents = $image->getData();
+        $editFileEvent = new EditFileEvent($this->app, $editedImage);
 
-        $editFileEvent = new EditFileEvent($this->app, $editedFile, $newContents);
+        $editedImage->setNewContents($image->getData());
+        $editedImage->setNewDimensions($image->getWidth(), $image->getHeight());
+
+        if (!$editedImage->isValid()) {
+            throw new InvalidUploadException('Invalid file provided');
+        }
 
         $dispatcher->dispatch(CKFinderEvent::EDIT_IMAGE, $editFileEvent);
 
         $saved = false;
 
         if (!$editFileEvent->isPropagationStopped()) {
-            $saved = $editedFile->setContents($editFileEvent->getNewContents());
+            $saved = $editedImage->save($editFileEvent->getNewContents());
 
             //Remove thumbnails and resized images in case if file is overwritten
             if ($newFileName === null && $saved) {
