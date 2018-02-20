@@ -14,7 +14,7 @@ return [
             'ckfinder' => [
                 'type' => Literal::class,
                 'options' => [
-                    'route'    => '/connector.php',
+                    'route'    => '/connection.php',
                     'defaults' => [
                         'controller' => Controller\IndexController::class,
                         'action'     => 'index',
