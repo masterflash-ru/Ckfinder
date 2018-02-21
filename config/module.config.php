@@ -23,6 +23,19 @@ return [
             ],
 
         ],
+        'routes' => [
+            'ckfinder1111' => [
+                'type' => Literal::class,
+                'options' => [
+                    'route'    => '/connector.php',
+                    'defaults' => [
+                        'controller' => Controller\IndexController::class,
+                        'action'     => 'index',
+                    ],
+                ],
+            ],
+
+        ],
     ],
     //контроллеры
     'controllers' => [
