@@ -23,8 +23,7 @@ return [
             ],
 
         ],
-        'routes' => [
-            'ckfinder1111' => [
+        'ckfinder1111' => [
                 'type' => Literal::class,
                 'options' => [
                     'route'    => '/connector.php',
@@ -35,7 +34,6 @@ return [
                 ],
             ],
 
-        ],
     ],
     //контроллеры
     'controllers' => [
