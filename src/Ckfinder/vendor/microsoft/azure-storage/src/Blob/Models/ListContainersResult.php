@@ -26,9 +26,8 @@ namespace MicrosoftAzure\Storage\Blob\Models;
 
 use MicrosoftAzure\Storage\Common\Internal\Resources;
 use MicrosoftAzure\Storage\Common\Internal\Utilities;
-use MicrosoftAzure\Storage\Blob\Models\Container;
-use MicrosoftAzure\Storage\Blob\Models\BlobContinuationToken;
-use MicrosoftAzure\Storage\Blob\Models\BlobContinuationTokenTrait;
+use MicrosoftAzure\Storage\Common\Models\MarkerContinuationToken;
+use MicrosoftAzure\Storage\Common\MarkerContinuationTokenTrait;
 
 /**
  * Container to hold list container response object.
@@ -42,13 +41,13 @@ use MicrosoftAzure\Storage\Blob\Models\BlobContinuationTokenTrait;
  */
 class ListContainersResult
 {
-    use BlobContinuationTokenTrait;
+    use MarkerContinuationTokenTrait;
 
-    private $_containers;
-    private $_prefix;
-    private $_marker;
-    private $_maxResults;
-    private $_accountName;
+    private $containers;
+    private $prefix;
+    private $marker;
+    private $maxResults;
+    private $accountName;
 
     /**
      * Creates ListBlobResult object from parsed XML response.
@@ -80,15 +79,19 @@ class ListContainersResult
             $parsedResponse,
             Resources::QP_MARKER
         ));
-        $result->setContinuationToken(
-            new BlobContinuationToken(
-                Utilities::tryGetValue(
-                    $parsedResponse,
-                    Resources::QP_NEXT_MARKER
-                ),
-                $location
-            )
-        );
+
+        $nextMarker =
+            Utilities::tryGetValue($parsedResponse, Resources::QP_NEXT_MARKER);
+
+        if ($nextMarker != null) {
+            $result->setContinuationToken(
+                new MarkerContinuationToken(
+                    $nextMarker,
+                    $location
+                )
+            );
+        }
+        
         $result->setMaxResults(Utilities::tryGetValue(
             $parsedResponse,
             Resources::QP_MAX_RESULTS
@@ -123,6 +126,9 @@ class ListContainersResult
             if (array_key_exists('LeaseDuration', $value['Properties'])) {
                 $properties->setLeaseStatus($value['Properties']['LeaseDuration']);
             }
+            if (array_key_exists('PublicAccess', $value['Properties'])) {
+                $properties->setPublicAccess($value['Properties']['PublicAccess']);
+            }
             $container->setProperties($properties);
             $containers[] = $container;
         }
@@ -139,9 +145,9 @@ class ListContainersResult
      */
     protected function setContainers(array $containers)
     {
-        $this->_containers = array();
+        $this->containers = array();
         foreach ($containers as $container) {
-            $this->_containers[] = clone $container;
+            $this->containers[] = clone $container;
         }
     }
     
@@ -152,7 +158,7 @@ class ListContainersResult
      */
     public function getContainers()
     {
-        return $this->_containers;
+        return $this->containers;
     }
 
     /**
@@ -162,7 +168,7 @@ class ListContainersResult
      */
     public function getPrefix()
     {
-        return $this->_prefix;
+        return $this->prefix;
     }
 
     /**
@@ -174,7 +180,7 @@ class ListContainersResult
      */
     protected function setPrefix($prefix)
     {
-        $this->_prefix = $prefix;
+        $this->prefix = $prefix;
     }
 
     /**
@@ -184,7 +190,7 @@ class ListContainersResult
      */
     public function getMarker()
     {
-        return $this->_marker;
+        return $this->marker;
     }
 
     /**
@@ -196,7 +202,7 @@ class ListContainersResult
      */
     protected function setMarker($marker)
     {
-        $this->_marker = $marker;
+        $this->marker = $marker;
     }
 
     /**
@@ -206,7 +212,7 @@ class ListContainersResult
      */
     public function getMaxResults()
     {
-        return $this->_maxResults;
+        return $this->maxResults;
     }
 
     /**
@@ -218,7 +224,7 @@ class ListContainersResult
      */
     protected function setMaxResults($maxResults)
     {
-        $this->_maxResults = $maxResults;
+        $this->maxResults = $maxResults;
     }
 
     /**
@@ -228,7 +234,7 @@ class ListContainersResult
      */
     public function getAccountName()
     {
-        return $this->_accountName;
+        return $this->accountName;
     }
 
     /**
@@ -240,6 +246,6 @@ class ListContainersResult
      */
     protected function setAccountName($accountName)
     {
-        $this->_accountName = $accountName;
+        $this->accountName = $accountName;
     }
 }

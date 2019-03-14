@@ -24,7 +24,7 @@
  
 namespace MicrosoftAzure\Storage\Common\Exceptions;
 
-use MicrosoftAzure\Storage\Common\Internal\Serialization\XMLSerializer;
+use MicrosoftAzure\Storage\Common\Internal\Serialization\XmlSerializer;
 use MicrosoftAzure\Storage\Common\Internal\Resources;
 use Psr\Http\Message\ResponseInterface;
 
@@ -83,10 +83,21 @@ class ServiceException extends \LogicException
     {
         //try to parse using xml serializer, if failed, return the whole body
         //as the error message.
-        $serializer = new XMLSerializer();
+        $serializer = new XmlSerializer();
         $errorMessage = '';
         try {
+            $internalErrors = libxml_use_internal_errors(true);
             $parsedArray = $serializer->unserialize($response->getBody());
+            $messages = array();
+            foreach (libxml_get_errors() as $error) {
+                $messages[] = $error->message;
+            }
+            if (!empty($messages)) {
+                throw new \Exception(
+                    sprintf(Resources::ERROR_CANNOT_PARSE_XML, implode('; ', $messages))
+                );
+            }
+            libxml_use_internal_errors($internalErrors);
             if (array_key_exists(Resources::XTAG_MESSAGE, $parsedArray)) {
                 $errorMessage = $parsedArray[Resources::XTAG_MESSAGE];
             } else {

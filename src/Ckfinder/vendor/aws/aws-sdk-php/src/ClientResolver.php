@@ -6,13 +6,10 @@ use Aws\Api\ApiProvider;
 use Aws\Api\Service;
 use Aws\Credentials\Credentials;
 use Aws\Credentials\CredentialsInterface;
-use Aws\Endpoint\Partition;
 use Aws\Endpoint\PartitionEndpointProvider;
-use Aws\Endpoint\PartitionProviderInterface;
 use Aws\Signature\SignatureProvider;
 use Aws\Endpoint\EndpointProvider;
 use Aws\Credentials\CredentialProvider;
-use GuzzleHttp\Promise;
 use InvalidArgumentException as IAE;
 use Psr\Http\Message\RequestInterface;
 
@@ -55,6 +52,12 @@ class ClientResolver
             'valid'    => ['string'],
             'default'  => 'https',
             'doc'      => 'URI scheme to use when connecting connect. The SDK will utilize "https" endpoints (i.e., utilize SSL/TLS connections) by default. You can attempt to connect to a service over an unencrypted "http" endpoint by setting ``scheme`` to "http".',
+        ],
+        'disable_host_prefix_injection' => [
+            'type'      => 'value',
+            'valid'     => ['bool'],
+            'doc'       => 'Set to true to disable host prefix injection logic for services that use it. This disables the entire prefix injection, including the portions supplied by user-defined parameters. Setting this flag will have no effect on services that do not use host prefix injection.',
+            'default'   => false,
         ],
         'endpoint' => [
             'type'  => 'value',
@@ -363,7 +366,7 @@ class ClientResolver
         foreach ($this->argDefinitions as $k => $a) {
             if (empty($a['required'])
                 || isset($a['default'])
-                || array_key_exists($k, $args)
+                || isset($args[$k])
             ) {
                 continue;
             }
@@ -389,7 +392,9 @@ class ClientResolver
     {
         if (is_callable($value)) {
             return;
-        } elseif ($value instanceof CredentialsInterface) {
+        }
+
+        if ($value instanceof CredentialsInterface) {
             $args['credentials'] = CredentialProvider::fromCredentials($value);
         } elseif (is_array($value)
             && isset($value['key'])
@@ -567,6 +572,9 @@ class ClientResolver
 
         $value = array_map('strval', $value);
 
+        if (defined('HHVM_VERSION')) {
+            array_unshift($value, 'HHVM/' . HHVM_VERSION);
+        }
         array_unshift($value, 'aws-sdk-php/' . Sdk::VERSION);
         $args['ua_append'] = $value;
 

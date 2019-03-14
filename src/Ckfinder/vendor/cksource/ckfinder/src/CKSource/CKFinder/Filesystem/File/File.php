@@ -3,8 +3,8 @@
 /*
  * CKFinder
  * ========
- * http://cksource.com/ckfinder
- * Copyright (C) 2007-2016, CKSource - Frederico Knabben. All rights reserved.
+ * https://ckeditor.com/ckeditor-4/ckfinder/
+ * Copyright (c) 2007-2018, CKSource - Frederico Knabben. All rights reserved.
  *
  * The software, this file and its contents are subject to the CKFinder
  * License. Please read the license.txt file before using, installing, copying,
@@ -220,20 +220,20 @@ abstract class File
     }
 
     /**
-     * Replace accented UTF-8 characters by unaccented ASCII-7 "equivalents".
+     * Replace accented UTF-8 characters with unaccented ASCII-7 "equivalents".
      * The purpose of this function is to replace characters commonly found in Latin
      * alphabets with something more or less equivalent from the ASCII range. This can
-     * be useful for converting a UTF-8 to something ready for a filename, for example.
-     * Following the use of this function, you would probably also pass the string
-     * through utf8_strip_non_ascii to clean out any other non-ASCII chars
+     * be useful for example for converting UTF-8 to something ready for a file name.
+     * After the use of this function, you would probably also pass the string
+     * through `utf8_strip_non_ascii` to clean out any other non-ASCII characters.
      *
-     * For a more complete implementation of transliteration, see the utf8_to_ascii package
+     * For a more complete implementation of transliteration, see the `utf8_to_ascii` package
      * available from the phputf8 project downloads:
      * http://prdownloads.sourceforge.net/phputf8
      *
      * @param string $str
      *
-     * @return string accented chars replaced with ascii equivalents
+     * @return string Accented chars replaced with ASCII equivalents
      * @author Andreas Gohr <andi@splitbrain.org>
      * @see http://sourceforge.net/projects/phputf8/
      */

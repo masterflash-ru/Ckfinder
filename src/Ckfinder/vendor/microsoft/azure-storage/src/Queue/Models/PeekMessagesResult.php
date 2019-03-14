@@ -24,7 +24,6 @@
 
 namespace MicrosoftAzure\Storage\Queue\Models;
 
-use MicrosoftAzure\Storage\Queue\Models\QueueMessage;
 use MicrosoftAzure\Storage\Common\Internal\Utilities;
 use MicrosoftAzure\Storage\Common\Internal\Resources;
 
@@ -40,7 +39,7 @@ use MicrosoftAzure\Storage\Common\Internal\Resources;
  */
 class PeekMessagesResult
 {
-    private $_queueMessages;
+    private $queueMessages;
     
     /**
      * Creates PeekMessagesResult object from parsed XML response.
@@ -80,7 +79,7 @@ class PeekMessagesResult
     {
         $clonedMessages = array();
         
-        foreach ($this->_queueMessages as $value) {
+        foreach ($this->queueMessages as $value) {
             $clonedMessages[] = clone $value;
         }
         
@@ -98,6 +97,6 @@ class PeekMessagesResult
      */
     protected function setQueueMessages($queueMessages)
     {
-        $this->_queueMessages = $queueMessages;
+        $this->queueMessages = $queueMessages;
     }
 }

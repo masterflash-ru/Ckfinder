@@ -3,8 +3,8 @@
 /*
  * CKFinder
  * ========
- * http://cksource.com/ckfinder
- * Copyright (C) 2007-2016, CKSource - Frederico Knabben. All rights reserved.
+ * https://ckeditor.com/ckeditor-4/ckfinder/
+ * Copyright (c) 2007-2018, CKSource - Frederico Knabben. All rights reserved.
  *
  * The software, this file and its contents are subject to the CKFinder
  * License. Please read the license.txt file before using, installing, copying,
@@ -77,7 +77,7 @@ class Image
     protected $dataSize;
 
     /**
-     * Quality of rescaled image.
+     * The quality of the rescaled image.
      *
      * @var int
      */
@@ -217,7 +217,7 @@ class Image
     }
 
     /**
-     * Returns the aspect ratio size as associative array:
+     * Returns the aspect ratio size as an associative array:
      * @code
      * array
      * (
@@ -574,8 +574,8 @@ class Image
     /**
      * Returns image data.
      *
-     * @param string $format Returned image format mimetype (current image mimetype is used if not set).
-     * @param int $quality   Image quelity (used for JPG images only)
+     * @param string $format Returned image format MIME type (current image MIME type is used if not set).
+     * @param int $quality   Image quality (used for JPG images only)
      *
      * @return string image data
      */
@@ -621,7 +621,7 @@ class Image
     }
 
     /**
-     * Returns the size of image data produced by the `getData()` method.
+     * Returns the size of the image data produced by the `getData()` method.
      *
      * @return int image data size in bytes
      */

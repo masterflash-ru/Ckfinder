@@ -3,8 +3,8 @@
 /*
  * CKFinder
  * ========
- * http://cksource.com/ckfinder
- * Copyright (C) 2007-2016, CKSource - Frederico Knabben. All rights reserved.
+ * https://ckeditor.com/ckeditor-4/ckfinder/
+ * Copyright (c) 2007-2018, CKSource - Frederico Knabben. All rights reserved.
  *
  * The software, this file and its contents are subject to the CKFinder
  * License. Please read the license.txt file before using, installing, copying,
@@ -41,7 +41,7 @@ class Dropbox extends \Spatie\FlysystemDropbox\DropboxAdapter
     {
         $this->backendConfig = $backendConfig;
 
-        parent::__construct($client, isset($backendConfig['root']) ? $backendConfig['root'] : null);
+        parent::__construct($client, isset($backendConfig['root']) ? $backendConfig['root'] : '');
     }
 
     /**
@@ -86,9 +86,9 @@ class Dropbox extends \Spatie\FlysystemDropbox\DropboxAdapter
     /**
      * Returns the file MIME type.
      *
-     * The Dropbox API v2 does not support mimetypes, but it's required
+     * The Dropbox API v2 does not support MIME types, but it is required
      * by some connector features, so this method tries to guess one using
-     * file extension.
+     * the file extension.
      *
      * @param string $path
      *
@@ -104,7 +104,7 @@ class Dropbox extends \Spatie\FlysystemDropbox\DropboxAdapter
     }
 
     /**
-     * Returns file metadata, including guessed mimetype.
+     * Returns file metadata, including the guessed MIME type.
      *
      * @param string $path
      * @return array

@@ -3,8 +3,8 @@
 /*
  * CKFinder
  * ========
- * http://cksource.com/ckfinder
- * Copyright (C) 2007-2016, CKSource - Frederico Knabben. All rights reserved.
+ * https://ckeditor.com/ckeditor-4/ckfinder/
+ * Copyright (c) 2007-2018, CKSource - Frederico Knabben. All rights reserved.
  *
  * The software, this file and its contents are subject to the CKFinder
  * License. Please read the license.txt file before using, installing, copying,
@@ -63,7 +63,7 @@ use Symfony\Component\HttpKernel\KernelEvents;
  */
 class CKFinder extends Container implements HttpKernelInterface
 {
-    const VERSION = '3.4.2';
+    const VERSION = '3.4.5';
 
     const COMMANDS_NAMESPACE = 'CKSource\\CKFinder\\Command\\';
     const PLUGINS_NAMESPACE = 'CKSource\\CKFinder\\Plugin\\';
@@ -247,12 +247,12 @@ class CKFinder extends Container implements HttpKernelInterface
     }
 
     /**
-     * A handler for OPTIONS HTTP method.
+     * A handler for the OPTIONS HTTP method.
      *
-     * If request HTTP method is OPTIONS it returns an empty response with
-     * extra headers defined in config.
+     * If the request HTTP method is OPTIONS, it returns an empty response with
+     * extra headers defined in the configuration.
      * This handler is executed very early, so if required, the response is set
-     * even before the controller for current request is resolved.
+     * even before the controller for the current request is resolved.
      *
      * @param GetResponseEvent $event
      */
@@ -264,7 +264,7 @@ class CKFinder extends Container implements HttpKernelInterface
     }
 
     /**
-     * Returns an array of extra headers defined in `headers` config option.
+     * Returns an array of extra headers defined in the `headers` configuration option.
      *
      * @return array An array of headers.
      */

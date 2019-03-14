@@ -24,29 +24,28 @@
 
 namespace MicrosoftAzure\Storage\Queue;
 
-use MicrosoftAzure\Storage\Common\Internal\ServiceRestTrait;
+use MicrosoftAzure\Storage\Common\Internal\Http\HttpFormatter;
 use MicrosoftAzure\Storage\Common\Internal\Resources;
-use MicrosoftAzure\Storage\Common\Internal\Validate;
-use MicrosoftAzure\Storage\Common\Internal\Utilities;
 use MicrosoftAzure\Storage\Common\Internal\ServiceRestProxy;
-use MicrosoftAzure\Storage\Common\Models\GetServicePropertiesResult;
-use MicrosoftAzure\Storage\Common\Models\ServiceProperties;
+use MicrosoftAzure\Storage\Common\Internal\ServiceRestTrait;
+use MicrosoftAzure\Storage\Common\Internal\Utilities;
+use MicrosoftAzure\Storage\Common\Internal\Validate;
 use MicrosoftAzure\Storage\Common\LocationMode;
 use MicrosoftAzure\Storage\Queue\Internal\IQueue;
-use MicrosoftAzure\Storage\Queue\Models\ListQueuesOptions;
-use MicrosoftAzure\Storage\Queue\Models\ListQueuesResult;
-use MicrosoftAzure\Storage\Queue\Models\CreateQueueOptions;
-use MicrosoftAzure\Storage\Queue\Models\QueueServiceOptions;
-use MicrosoftAzure\Storage\Queue\Models\GetQueueMetadataResult;
 use MicrosoftAzure\Storage\Queue\Models\CreateMessageOptions;
-use MicrosoftAzure\Storage\Queue\Models\QueueACL;
-use MicrosoftAzure\Storage\Queue\Models\QueueMessage;
+use MicrosoftAzure\Storage\Queue\Models\CreateMessageResult;
+use MicrosoftAzure\Storage\Queue\Models\CreateQueueOptions;
+use MicrosoftAzure\Storage\Queue\Models\GetQueueMetadataResult;
 use MicrosoftAzure\Storage\Queue\Models\ListMessagesOptions;
 use MicrosoftAzure\Storage\Queue\Models\ListMessagesResult;
+use MicrosoftAzure\Storage\Queue\Models\ListQueuesOptions;
+use MicrosoftAzure\Storage\Queue\Models\ListQueuesResult;
 use MicrosoftAzure\Storage\Queue\Models\PeekMessagesOptions;
 use MicrosoftAzure\Storage\Queue\Models\PeekMessagesResult;
+use MicrosoftAzure\Storage\Queue\Models\QueueACL;
+use MicrosoftAzure\Storage\Queue\Models\QueueMessage;
+use MicrosoftAzure\Storage\Queue\Models\QueueServiceOptions;
 use MicrosoftAzure\Storage\Queue\Models\UpdateMessageResult;
-use MicrosoftAzure\Storage\Common\Internal\Http\HttpFormatter;
 
 /**
  * This class constructs HTTP requests and receive HTTP responses for queue
@@ -169,7 +168,7 @@ class QueueRestProxy extends ServiceRestProxy implements IQueue
         $queueName,
         QueueServiceOptions $options = null
     ) {
-        Validate::isString($queueName, 'queueName');
+        Validate::canCastAsString($queueName, 'queueName');
         Validate::notNullOrEmpty($queueName, 'queueName');
         
         $method      = Resources::HTTP_DELETE;
@@ -205,14 +204,14 @@ class QueueRestProxy extends ServiceRestProxy implements IQueue
      * @param string               $messageText The message contents.
      * @param CreateMessageOptions $options     The optional parameters.
      *
-     * @return void
+     * @return CreateMessageResult
      */
     public function createMessage(
         $queueName,
         $messageText,
         CreateMessageOptions $options = null
     ) {
-        $this->createMessageAsync($queueName, $messageText, $options)->wait();
+        return $this->createMessageAsync($queueName, $messageText, $options)->wait();
     }
 
     /**
@@ -230,9 +229,9 @@ class QueueRestProxy extends ServiceRestProxy implements IQueue
         $messageText,
         CreateMessageOptions $options = null
     ) {
-        Validate::isString($queueName, 'queueName');
+        Validate::canCastAsString($queueName, 'queueName');
         Validate::notNullOrEmpty($queueName, 'queueName');
-        Validate::isString($messageText, 'messageText');
+        Validate::canCastAsString($messageText, 'messageText');
         
         $method      = Resources::HTTP_POST;
         $headers     = array();
@@ -271,6 +270,8 @@ class QueueRestProxy extends ServiceRestProxy implements IQueue
         
         $options->setLocationMode(LocationMode::PRIMARY_ONLY);
 
+        $dataSerializer = $this->dataSerializer;
+
         return $this->sendAsync(
             $method,
             $headers,
@@ -280,7 +281,10 @@ class QueueRestProxy extends ServiceRestProxy implements IQueue
             Resources::STATUS_CREATED,
             $body,
             $options
-        );
+        )->then(function ($response) use ($dataSerializer) {
+            $parsed = $dataSerializer->unserialize($response->getBody());
+            return CreateMessageResult::create($parsed);
+        }, null);
     }
 
     /**
@@ -310,7 +314,7 @@ class QueueRestProxy extends ServiceRestProxy implements IQueue
         $queueName,
         Models\CreateQueueOptions $options = null
     ) {
-        Validate::isString($queueName, 'queueName');
+        Validate::canCastAsString($queueName, 'queueName');
         Validate::notNullOrEmpty($queueName, 'queueName');
         
         $method      = Resources::HTTP_PUT;
@@ -382,11 +386,11 @@ class QueueRestProxy extends ServiceRestProxy implements IQueue
         $popReceipt,
         QueueServiceOptions $options = null
     ) {
-        Validate::isString($queueName, 'queueName');
+        Validate::canCastAsString($queueName, 'queueName');
         Validate::notNullOrEmpty($queueName, 'queueName');
-        Validate::isString($messageId, 'messageId');
+        Validate::canCastAsString($messageId, 'messageId');
         Validate::notNullOrEmpty($messageId, 'messageId');
-        Validate::isString($popReceipt, 'popReceipt');
+        Validate::canCastAsString($popReceipt, 'popReceipt');
         Validate::notNullOrEmpty($popReceipt, 'popReceipt');
         
         $method      = Resources::HTTP_DELETE;
@@ -445,7 +449,7 @@ class QueueRestProxy extends ServiceRestProxy implements IQueue
         $queueName,
         QueueServiceOptions $options = null
     ) {
-        Validate::isString($queueName, 'queueName');
+        Validate::canCastAsString($queueName, 'queueName');
         Validate::notNullOrEmpty($queueName, 'queueName');
         
         $method      = Resources::HTTP_DELETE;
@@ -497,7 +501,7 @@ class QueueRestProxy extends ServiceRestProxy implements IQueue
         $queueName,
         QueueServiceOptions $options = null
     ) {
-        Validate::isString($queueName, 'queueName');
+        Validate::canCastAsString($queueName, 'queueName');
         Validate::notNullOrEmpty($queueName, 'queueName');
         
         $method      = Resources::HTTP_GET;
@@ -561,7 +565,7 @@ class QueueRestProxy extends ServiceRestProxy implements IQueue
         $queueName,
         ListMessagesOptions $options = null
     ) {
-        Validate::isString($queueName, 'queueName');
+        Validate::canCastAsString($queueName, 'queueName');
         Validate::notNullOrEmpty($queueName, 'queueName');
         
         $method      = Resources::HTTP_GET;
@@ -634,7 +638,7 @@ class QueueRestProxy extends ServiceRestProxy implements IQueue
         $queueName,
         PeekMessagesOptions $options = null
     ) {
-        Validate::isString($queueName, 'queueName');
+        Validate::canCastAsString($queueName, 'queueName');
         Validate::notNullOrEmpty($queueName, 'queueName');
         
         $method      = Resources::HTTP_GET;
@@ -706,7 +710,7 @@ class QueueRestProxy extends ServiceRestProxy implements IQueue
         array $metadata = null,
         QueueServiceOptions $options = null
     ) {
-        Validate::isString($queueName, 'queueName');
+        Validate::canCastAsString($queueName, 'queueName');
         Validate::notNullOrEmpty($queueName, 'queueName');
         Utilities::validateMetadata($metadata);
         
@@ -807,13 +811,13 @@ class QueueRestProxy extends ServiceRestProxy implements IQueue
         $visibilityTimeoutInSeconds,
         QueueServiceOptions $options = null
     ) {
-        Validate::isString($queueName, 'queueName');
+        Validate::canCastAsString($queueName, 'queueName');
         Validate::notNullOrEmpty($queueName, 'queueName');
-        Validate::isString($messageId, 'messageId');
+        Validate::canCastAsString($messageId, 'messageId');
         Validate::notNullOrEmpty($messageId, 'messageId');
-        Validate::isString($popReceipt, 'popReceipt');
+        Validate::canCastAsString($popReceipt, 'popReceipt');
         Validate::notNullOrEmpty($popReceipt, 'popReceipt');
-        Validate::isString($messageText, 'messageText');
+        Validate::canCastAsString($messageText, 'messageText');
         Validate::isInteger(
             $visibilityTimeoutInSeconds,
             'visibilityTimeoutInSeconds'
@@ -905,7 +909,7 @@ class QueueRestProxy extends ServiceRestProxy implements IQueue
         $queue,
         Models\QueueServiceOptions $options = null
     ) {
-        Validate::isString($queue, 'queue');
+        Validate::canCastAsString($queue, 'queue');
         
         $method      = Resources::HTTP_GET;
         $headers     = array();
@@ -978,7 +982,7 @@ class QueueRestProxy extends ServiceRestProxy implements IQueue
         Models\QueueACL $acl,
         Models\QueueServiceOptions $options = null
     ) {
-        Validate::isString($queue, 'queue');
+        Validate::canCastAsString($queue, 'queue');
         Validate::notNullOrEmpty($acl, 'acl');
         
         $method      = Resources::HTTP_PUT;

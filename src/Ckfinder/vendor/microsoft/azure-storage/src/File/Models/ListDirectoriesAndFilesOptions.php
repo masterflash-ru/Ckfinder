@@ -24,12 +24,8 @@
  
 namespace MicrosoftAzure\Storage\File\Models;
 
-use MicrosoftAzure\Storage\Common\Internal\Utilities;
-use MicrosoftAzure\Storage\Common\Internal\Resources;
 use MicrosoftAzure\Storage\Common\Internal\Validate;
-use MicrosoftAzure\Storage\File\Models\FileServiceOptions;
-use MicrosoftAzure\Storage\File\Models\FileContinuationToken;
-use MicrosoftAzure\Storage\File\Models\FileContinuationTokenTrait;
+use MicrosoftAzure\Storage\Common\MarkerContinuationTokenTrait;
 
 /**
  * The options of listing directories and files.
@@ -43,9 +39,10 @@ use MicrosoftAzure\Storage\File\Models\FileContinuationTokenTrait;
  */
 class ListDirectoriesAndFilesOptions extends FileServiceOptions
 {
-    use FileContinuationTokenTrait;
+    use MarkerContinuationTokenTrait;
 
     private $maxResults;
+    private $prefix;
 
     /**
      * Gets max results which specifies the maximum number of directories and
@@ -76,7 +73,29 @@ class ListDirectoriesAndFilesOptions extends FileServiceOptions
      */
     public function setMaxResults($maxResults)
     {
-        Validate::isString($maxResults, 'maxResults');
+        Validate::canCastAsString($maxResults, 'maxResults');
         $this->maxResults = $maxResults;
+    }
+
+    /**
+     * Get the prefix.
+     *
+     * @return string
+     */
+    public function getPrefix()
+    {
+        return $this->prefix;
+    }
+
+    /**
+     * Set a specified prefix.
+     *
+     * @param string $prefix
+     *
+     * @return void
+     */
+    public function setPrefix($prefix)
+    {
+        $this->prefix = $prefix;
     }
 }

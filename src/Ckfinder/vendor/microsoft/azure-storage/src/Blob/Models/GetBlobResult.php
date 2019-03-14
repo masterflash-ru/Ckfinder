@@ -24,8 +24,6 @@
  
 namespace MicrosoftAzure\Storage\Blob\Models;
 
-use MicrosoftAzure\Storage\Blob\Models\BlobProperties;
-use MicrosoftAzure\Storage\Common\Internal\Utilities;
 use Psr\Http\Message\StreamInterface;
 
 /**
@@ -40,9 +38,9 @@ use Psr\Http\Message\StreamInterface;
  */
 class GetBlobResult
 {
-    private $_properties;
-    private $_metadata;
-    private $_contentStream;
+    private $properties;
+    private $metadata;
+    private $contentStream;
     
     /**
      * Creates GetBlobResult from getBlob call.
@@ -75,7 +73,7 @@ class GetBlobResult
      */
     public function getMetadata()
     {
-        return $this->_metadata;
+        return $this->metadata;
     }
 
     /**
@@ -87,7 +85,7 @@ class GetBlobResult
      */
     protected function setMetadata(array $metadata)
     {
-        $this->_metadata = $metadata;
+        $this->metadata = $metadata;
     }
     
     /**
@@ -97,7 +95,7 @@ class GetBlobResult
      */
     public function getProperties()
     {
-        return $this->_properties;
+        return $this->properties;
     }
 
     /**
@@ -109,7 +107,7 @@ class GetBlobResult
      */
     protected function setProperties(BlobProperties $properties)
     {
-        $this->_properties = $properties;
+        $this->properties = $properties;
     }
     
     /**
@@ -119,7 +117,7 @@ class GetBlobResult
      */
     public function getContentStream()
     {
-        return $this->_contentStream;
+        return $this->contentStream;
     }
 
     /**
@@ -131,6 +129,6 @@ class GetBlobResult
      */
     protected function setContentStream($contentStream)
     {
-        $this->_contentStream = $contentStream;
+        $this->contentStream = $contentStream;
     }
 }

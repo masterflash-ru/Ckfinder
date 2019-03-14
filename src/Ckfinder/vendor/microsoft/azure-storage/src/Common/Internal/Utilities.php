@@ -323,12 +323,18 @@ class Utilities
     /**
      * Converts string into boolean value.
      *
-     * @param string $obj boolean value in string format.
+     * @param string $obj       boolean value in string format.
+     * @param bool   $skipNull  If $skipNull is set, will return NULL directly 
+     *                          when $obj is NULL.
      *
      * @return bool
      */
-    public static function toBoolean($obj)
+    public static function toBoolean($obj, $skipNull = false)
     {
+        if ($skipNull && is_null($obj)) {
+            return null;
+        }
+
         return filter_var($obj, FILTER_VALIDATE_BOOLEAN);
     }
 
@@ -347,7 +353,7 @@ class Utilities
     /**
      * Converts a given date string into \DateTime object
      *
-     * @param string $date windows azure date ins string represntation.
+     * @param string $date windows azure date ins string representation.
      *
      * @return \DateTime
      */
@@ -362,27 +368,16 @@ class Utilities
     /**
      * Generate ISO 8601 compliant date string in UTC time zone
      *
-     * @param int $timestamp The unix timestamp to convert
-     *     (for DateTime check date_timestamp_get).
+     * @param \DateTimeInterface $date The date value to convert
      *
      * @return string
      */
-    public static function isoDate($timestamp = null)
+    public static function isoDate(\DateTimeInterface $date)
     {
-        $tz = date_default_timezone_get();
-        date_default_timezone_set('UTC');
+        $date = clone $date;
+        $date = $date->setTimezone(new \DateTimeZone('UTC'));
 
-        if (is_null($timestamp)) {
-            $timestamp = time();
-        }
-
-        $returnValue = str_replace(
-            '+00:00',
-            '.0000000Z',
-            date('c', $timestamp)
-        );
-        date_default_timezone_set($tz);
-        return $returnValue;
+        return str_replace('+00:00', 'Z', $date->format('c'));
     }
 
     /**
@@ -635,7 +630,7 @@ class Utilities
      */
     public static function base256ToDec($number)
     {
-        Validate::isString($number, 'number');
+        Validate::canCastAsString($number, 'number');
         
         $result = 0;
         $base   = 1;
@@ -734,8 +729,8 @@ class Utilities
         }
 
         foreach ($metadata as $key => $value) {
-            Validate::isString($key, 'metadata key');
-            Validate::isString($value, 'metadata value');
+            Validate::canCastAsString($key, 'metadata key');
+            Validate::canCastAsString($value, 'metadata value');
         }
     }
 
@@ -848,7 +843,7 @@ class Utilities
      */
     public static function isDouble($value)
     {
-        return is_double($value + 0);
+        return is_numeric($value) && is_double($value + 0);
     }
 
     /**
@@ -862,8 +857,18 @@ class Utilities
     public static function calculateContentMD5($content)
     {
         Validate::notNull($content, 'content');
-        Validate::isString($content, 'content');
+        Validate::canCastAsString($content, 'content');
 
         return base64_encode(md5($content, true));
+    }
+
+    /**
+     * Return if the environment is in 64 bit PHP.
+     *
+     * @return bool
+     */
+    public static function is64BitPHP()
+    {
+        return PHP_INT_SIZE == 8;
     }
 }
