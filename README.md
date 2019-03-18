@@ -3,6 +3,5 @@
 
 Установка:
 
-1. composer require masterflash-ru/Ckfinder
-2. в папку src/Ckfinder скопировать все содержимое коннектора плагина (plugins/ckfinder/core/connector/php) как есть
-3. в файле plugins/ckfinder/config.js добавить config.connectorPath="/connector.php" - новый путь к коннетору-обработчику
+1. composer require masterflash-ru/ckfinder
+2. в файле plugins/ckfinder/config.js добавить config.connectorPath="/connector.php" - новый путь к коннетору-обработчику. Если использовалось скелетное стартовое наше приложение, то ничего менять не нужно, все прописано.
