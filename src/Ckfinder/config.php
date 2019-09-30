@@ -42,8 +42,8 @@ $config['privateDir'] = array(
 // http://docs.cksource.com/ckfinder3-php/configuration.html#configuration_options_images
 
 $config['images'] = array(
-    'maxWidth'  => 10000,
-    'maxHeight' => 10000,
+    'maxWidth'  => 1600,
+    'maxHeight' => 3000,
     'quality'   => 100,
     'sizes' => array(
         'small'  => array('width' => 480, 'height' => 320, 'quality' => 95),

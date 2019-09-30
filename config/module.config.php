@@ -33,6 +33,26 @@ return [
                     ],
                 ],
             ],
+        'ckfinder222' => [
+                'type' => Literal::class,
+                'options' => [
+                    'route'    => '/connector',
+                    'defaults' => [
+                        'controller' => Controller\IndexController::class,
+                        'action'     => 'index',
+                    ],
+                ],
+            ],
+            'ckfinder333' => [
+                'type' => Literal::class,
+                'options' => [
+                    'route'    => '/connection',
+                    'defaults' => [
+                        'controller' => Controller\IndexController::class,
+                        'action'     => 'index',
+                    ],
+                ],
+            ],
 
     ],
     //контроллеры
