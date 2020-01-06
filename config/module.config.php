@@ -5,7 +5,7 @@
 
 namespace Mf\Ckfinder;
 
-use Zend\Router\Http\Literal;
+use Laminas\Router\Http\Literal;
 
 return [
   //маршруты
